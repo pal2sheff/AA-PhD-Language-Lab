@@ -2,14 +2,15 @@
 // Цвета серий проверены валидатором палитры (CVD ΔE ≥ 8).
 import { useState } from 'react';
 
-export const SERIES = { en: '#1d4ed8', kk: '#0d9488' };
+// EN — фирменный синий, KK — бирюзовый (тот же оттенок, что и цвет казахского в интерфейсе).
+export const SERIES = { en: '#2855a1', kk: '#0d9488' };
 
 export function Legend({ items }: { items: { label: string; color: string }[] }) {
   return (
-    <div className="flex flex-wrap gap-3 text-xs text-ink-soft">
+    <div className="flex flex-wrap gap-4 text-sm text-ink-soft">
       {items.map((i) => (
         <span key={i.label} className="inline-flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: i.color }} />
+          <span className="inline-block h-3 w-3 rounded-[3px]" style={{ background: i.color }} />
           {i.label}
         </span>
       ))}
@@ -34,13 +35,13 @@ export function StackedBars({
   const [hover, setHover] = useState<number | null>(null);
   const [table, setTable] = useState(false);
   const max = Math.max(1, target ?? 0, ...data.map((d) => d.values.reduce((a, b) => a + b, 0)));
-  const W = Math.max(280, data.length * 14);
+  const W = Math.max(280, Math.min(data.length * 14, 560));
   const bw = W / data.length;
   const H = height;
   if (table)
     return (
       <div>
-        <button className="mb-2 text-xs text-brand underline" onClick={() => setTable(false)}>
+        <button className="mb-2 min-h-11 text-sm font-medium text-brand underline underline-offset-2" onClick={() => setTable(false)}>
           Показать график
         </button>
         <div className="max-h-64 overflow-y-auto text-sm">
@@ -74,12 +75,12 @@ export function StackedBars({
     <div>
       <div className="mb-2 flex items-center justify-between gap-2">
         {series.length > 1 ? <Legend items={series} /> : <span />}
-        <button className="text-xs text-brand underline" onClick={() => setTable(true)}>
+        <button className="min-h-11 shrink-0 text-sm font-medium text-brand underline underline-offset-2" onClick={() => setTable(true)}>
           Таблица
         </button>
       </div>
       <div className="relative">
-        <svg viewBox={`0 0 ${W} ${H + 18}`} className="w-full" role="img" aria-label="График">
+        <svg viewBox={`0 0 ${W} ${H + 20}`} className="w-full" role="img" aria-label="График">
           {[0.5, 1].map((f) => (
             <line key={f} x1={0} x2={W} y1={H - H * f} y2={H - H * f} stroke="var(--color-line)" strokeWidth={1} />
           ))}
@@ -99,21 +100,21 @@ export function StackedBars({
             });
             return (
               <g key={i} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} onClick={() => setHover(i)}>
-                <rect x={i * bw} y={0} width={bw} height={H} fill={hover === i ? 'rgba(31,41,51,0.05)' : 'transparent'} />
+                <rect x={i * bw} y={0} width={bw} height={H} fill={hover === i ? 'rgba(23,43,77,0.05)' : 'transparent'} />
                 {segs}
               </g>
             );
           })}
           {data.map((d, i) =>
             i % Math.ceil(data.length / 7) === 0 ? (
-              <text key={i} x={i * bw + bw / 2} y={H + 13} textAnchor="middle" fontSize={10} fill="var(--color-ink-soft)">
+              <text key={i} x={i * bw + bw / 2} y={H + 14} textAnchor="middle" fontSize={W > 320 ? 12 : 10} fill="var(--color-ink-soft)">
                 {d.label}
               </text>
             ) : null,
           )}
         </svg>
         {hover !== null && data[hover] && (
-          <div className="pointer-events-none absolute top-0 rounded-lg border border-line bg-surface px-2 py-1 text-xs shadow-sm" style={{ left: `${Math.min(75, (hover / data.length) * 100)}%` }}>
+          <div className="pointer-events-none absolute top-0 rounded-xl border border-line bg-surface px-2.5 py-1.5 text-sm shadow-raised" style={{ left: `${Math.min(70, (hover / data.length) * 100)}%` }}>
             <div className="font-medium">{data[hover].label}</div>
             {series.map((s, k) => (
               <div key={s.label} className="flex items-center gap-1.5">
@@ -160,7 +161,7 @@ export function LineChart({ points, max = 100, height = 120, unit = '%', color =
         )}
       </svg>
       {hover !== null && (
-        <div className="pointer-events-none absolute top-0 rounded-lg border border-line bg-surface px-2 py-1 text-xs shadow-sm" style={{ left: `${Math.min(75, (xy[hover][0] / W) * 100)}%` }}>
+        <div className="pointer-events-none absolute top-0 rounded-xl border border-line bg-surface px-2.5 py-1.5 text-sm shadow-raised" style={{ left: `${Math.min(70, (xy[hover][0] / W) * 100)}%` }}>
           {points[hover].label}: <strong>{points[hover].value}{unit}</strong>
         </div>
       )}

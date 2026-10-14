@@ -39,7 +39,7 @@ export function SpeakButton({
     // В списках не загромождаем экран: неактивная кнопка с пояснением во всплывающей подсказке.
     return (
       <span
-        className="inline-flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded-xl border border-line text-ink-faint"
+        className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl border border-line text-ink-faint"
         title={info.note ?? 'Озвучка недоступна'}
         aria-label={info.note ?? 'Озвучка недоступна'}
         role="img"
@@ -50,17 +50,17 @@ export function SpeakButton({
   }
   if (!info.ok) {
     return (
-      <div className="rounded-xl border border-warn/30 bg-warn-soft px-3 py-2 text-sm text-[#7c3d0a]">
+      <div className="rounded-2xl border border-warn/25 bg-warn-soft px-4 py-3 text-[15px] text-ink">
         <div className="flex items-start gap-2">
-          <Icon name="alert" size={16} className="mt-0.5 shrink-0" />
+          <Icon name="alert" size={18} className="mt-0.5 shrink-0 text-warn" />
           <span>{info.note}</span>
         </div>
         {allowReveal &&
           (revealed ? (
-            <p className="mt-2 rounded-lg bg-surface px-2 py-1.5 font-medium text-ink">{text}</p>
+            <p className="mt-2 rounded-xl bg-surface px-3 py-2 font-medium text-ink">{text}</p>
           ) : (
             <button
-              className="mt-2 text-sm font-medium text-brand underline"
+              className="mt-1 min-h-11 text-sm font-medium text-brand underline underline-offset-2"
               onClick={() => {
                 setRevealed(true);
                 onPlayed?.();
@@ -89,7 +89,7 @@ export function SpeakButton({
         }}
         className={cx(
           'inline-flex items-center gap-2 rounded-xl border font-medium transition-colors',
-          compact ? 'min-h-9 px-2.5 text-sm' : 'min-h-11 px-4',
+          compact ? 'min-h-11 min-w-11 justify-center px-2.5 text-sm' : 'min-h-11 px-4',
           lang === 'kk' ? 'border-kk/30 bg-kk-soft text-kk' : 'border-brand/25 bg-brand-soft text-brand-ink',
         )}
         aria-label={label}
@@ -97,7 +97,7 @@ export function SpeakButton({
         <Icon name={playing ? 'stop' : 'speaker'} size={compact ? 16 : 18} />
         {!compact && (playing ? 'Стоп' : label)}
       </button>
-      {info.note && !compact && <span className="mt-1 max-w-xs text-xs text-warn">{info.note}</span>}
+      {info.note && !compact && <span className="mt-1 max-w-xs text-sm text-warn">{info.note}</span>}
     </span>
   );
 }
@@ -106,7 +106,7 @@ export function VoiceLabel({ lang, accent }: { lang: Lang; accent?: Accent }) {
   useVoices();
   const i = voiceInfo(lang, accent);
   return (
-    <p className="text-xs text-ink-faint">
+    <p className="text-sm text-ink-faint">
       Озвучка: синтезатор речи устройства{i.voiceName ? ` — ${i.voiceName}` : ''}. Это не запись носителя языка.
     </p>
   );
