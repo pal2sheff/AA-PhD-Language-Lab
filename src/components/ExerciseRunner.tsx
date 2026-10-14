@@ -9,7 +9,7 @@ import { aiCall, aiConfigured, learnerContext } from '../lib/ai';
 import { useAppState } from '../lib/store';
 import { SpeakButton } from './Audio';
 import { Icon } from './icons';
-import { Badge, Button, Notice, Rich, cx, inputCls } from './ui';
+import { ActionBar, Badge, Button, Notice, Rich, cx, inputCls } from './ui';
 import { topicName } from '../data/curriculum';
 
 export interface ExerciseResult {
@@ -60,9 +60,17 @@ export function ExerciseRunner({ exercises, lang, category = 'grammar', onDone, 
 
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between gap-2 text-sm text-ink-soft">
-        <span>{title ?? 'Упражнение'} {i + 1} из {queue.length}</span>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <span className="text-sm font-semibold text-ink-soft tabular-nums">
+          {title ?? 'Упражнение'} {i + 1} из {queue.length}
+        </span>
         <Badge tone={lang === 'kk' ? 'kk' : 'brand'}>{topicName(ex.topic)}</Badge>
+      </div>
+      <div className="mb-4 flex gap-1" aria-hidden="true">
+        {queue.map((q, k) => {
+          const r = results.find((x) => x.ex.id === q.id);
+          return <span key={k} className={cx('h-1.5 flex-1 rounded-full', r ? (r.correct ? 'bg-good' : 'bg-bad') : k === i ? (lang === 'kk' ? 'bg-kk' : 'bg-brand') : 'bg-line')} />;
+        })}
       </div>
       <ExerciseCard
         key={ex.id + i}
@@ -188,113 +196,148 @@ function ExerciseCard({
   const audioText = ex.type === 'listen' ? ex.say || sharedAudio || '' : '';
   const promptText = ex.type === 'translate' ? ex.source : ex.type === 'order' ? ex.ru ?? 'Составьте предложение из слов' : ex.prompt;
 
-  return (
-    <div className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
-      {ex.type === 'listen' && audioText && (
-        <div className="mb-3">
-          <SpeakButton text={audioText} lang={lang} label="Прослушать" />
-        </div>
-      )}
-      {ex.type === 'translate' && <div className="mb-1 text-xs font-medium tracking-wide text-ink-faint uppercase">Переведите на {lang === 'en' ? 'английский' : 'казахский'}</div>}
-      {ex.type === 'order' && <div className="mb-1 text-xs font-medium tracking-wide text-ink-faint uppercase">Составьте предложение</div>}
-      <p className="text-[17px] leading-snug font-medium">{promptText}</p>
-      {ex.type === 'gap' && ex.ru && <p className="mt-1 text-sm text-ink-soft">{ex.ru}</p>}
+  const canCheck = !((options && picked === null) || (ex.type === 'order' && !built.length) || ((ex.type === 'gap' || ex.type === 'translate' || (ex.type === 'listen' && ex.mode === 'type')) && !value.trim()));
+  const ok = !!checked && (checked.correct || selfAccepted);
 
-      {/* Ввод ответа */}
-      <div className="mt-4">
-        {options && (
-          <div className="grid gap-2">
-            {order.map((k) => {
-              const isPicked = picked === k;
-              const isRight = checked && k === correctIdx;
-              const isWrongPick = checked && isPicked && k !== correctIdx;
-              return (
-                <button
-                  key={k}
-                  disabled={!!checked}
-                  onClick={() => setPicked(k)}
-                  className={cx(
-                    'flex min-h-12 items-center justify-between gap-2 rounded-xl border px-4 py-2.5 text-left transition-colors',
-                    isRight ? 'border-good bg-good-soft' : isWrongPick ? 'border-bad bg-bad-soft' : isPicked ? 'border-brand bg-brand-soft' : 'border-line hover:bg-canvas',
-                  )}
-                >
-                  <span>{options[k]}</span>
-                  {isRight && <Icon name="check" className="text-good" />}
-                  {isWrongPick && <Icon name="x" className="text-bad" />}
-                </button>
-              );
-            })}
+  return (
+    <div>
+      <div className="rounded-card border border-line bg-surface p-5 shadow-card sm:p-7">
+        {ex.type === 'listen' && audioText && (
+          <div className="mb-4">
+            <SpeakButton text={audioText} lang={lang} label="Прослушать" />
           </div>
         )}
+        {ex.type === 'translate' && <div className="mb-2 text-xs font-semibold tracking-[0.06em] text-ink-soft uppercase">Переведите на {lang === 'en' ? 'английский' : 'казахский'}</div>}
+        {ex.type === 'order' && <div className="mb-2 text-xs font-semibold tracking-[0.06em] text-ink-soft uppercase">Составьте предложение</div>}
+        <p className="text-xl leading-snug font-medium sm:text-[22px]">{promptText}</p>
+        {ex.type === 'gap' && ex.ru && <p className="mt-2 text-ink-soft">{ex.ru}</p>}
 
-        {ex.type === 'order' && (
-          <div>
-            <div className="min-h-14 rounded-xl border border-dashed border-line bg-canvas p-2">
-              <div className="flex flex-wrap gap-2">
-                {built.map((k, pos) => (
-                  <button key={pos} disabled={!!checked} onClick={() => setBuilt((b) => b.filter((_, p) => p !== pos))} className="rounded-lg border border-brand/30 bg-brand-soft px-3 py-1.5 font-medium">
-                    {ex.words[k]}
+        {/* Ввод ответа */}
+        <div className="mt-6">
+          {options && (
+            <div className="grid gap-2.5" role="group" aria-label="Варианты ответа">
+              {order.map((k, pos) => {
+                const isPicked = picked === k;
+                const isRight = checked && k === correctIdx;
+                const isWrongPick = checked && isPicked && k !== correctIdx;
+                return (
+                  <button
+                    key={k}
+                    disabled={!!checked}
+                    onClick={() => setPicked(k)}
+                    aria-pressed={isPicked}
+                    className={cx(
+                      'flex min-h-14 items-center gap-3.5 rounded-2xl border-2 px-4 py-3 text-left text-[17px] transition-colors disabled:cursor-default',
+                      isRight ? 'border-good bg-good-soft' : isWrongPick ? 'border-bad bg-bad-soft' : isPicked ? 'border-brand bg-brand-soft' : checked ? 'border-line opacity-70' : 'border-line hover:border-line-strong hover:bg-subtle',
+                    )}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={cx(
+                        'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-semibold',
+                        isRight ? 'border-good bg-good text-white' : isWrongPick ? 'border-bad bg-bad text-white' : isPicked ? 'border-brand bg-brand text-white' : 'border-line-strong text-ink-soft',
+                      )}
+                    >
+                      {isRight ? <Icon name="check" size={16} strokeWidth={2.75} /> : isWrongPick ? <Icon name="x" size={16} strokeWidth={2.75} /> : String.fromCharCode(65 + pos)}
+                    </span>
+                    <span className="min-w-0 flex-1">{options[k]}</span>
                   </button>
-                ))}
-                {!built.length && <span className="px-1 py-1.5 text-sm text-ink-faint">Нажимайте слова ниже по порядку</span>}
+                );
+              })}
+            </div>
+          )}
+
+          {ex.type === 'order' && (
+            <div>
+              <div className="min-h-16 rounded-2xl border-2 border-dashed border-line-strong bg-subtle p-2.5">
+                <div className="flex flex-wrap gap-2">
+                  {built.map((k, pos) => (
+                    <button key={pos} disabled={!!checked} onClick={() => setBuilt((b) => b.filter((_, p) => p !== pos))} className="min-h-11 rounded-xl border border-brand/30 bg-brand-soft px-3.5 text-[17px] font-medium text-brand-ink">
+                      {ex.words[k]}
+                    </button>
+                  ))}
+                  {!built.length && <span className="px-1.5 py-2.5 text-ink-soft">Нажимайте слова ниже по порядку</span>}
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {words.map((k) =>
+                  built.includes(k) ? null : (
+                    <button key={k} disabled={!!checked} onClick={() => setBuilt((b) => [...b, k])} className="min-h-11 rounded-xl border border-line-strong bg-surface px-3.5 text-[17px] font-medium shadow-sm hover:bg-subtle">
+                      {ex.words[k]}
+                    </button>
+                  ),
+                )}
               </div>
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {words.map((k) =>
-                built.includes(k) ? null : (
-                  <button key={k} disabled={!!checked} onClick={() => setBuilt((b) => [...b, k])} className="rounded-lg border border-line bg-surface px-3 py-1.5 font-medium hover:bg-canvas">
-                    {ex.words[k]}
-                  </button>
-                ),
-              )}
-            </div>
-          </div>
-        )}
+          )}
 
-        {(ex.type === 'gap' || ex.type === 'translate' || (ex.type === 'listen' && ex.mode === 'type')) && (
-          <input
-            ref={inputRef}
-            value={value}
-            disabled={!!checked}
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && check()}
-            className={cx(inputCls, checked && (checked.correct ? 'border-good bg-good-soft' : 'border-bad bg-bad-soft'))}
-            placeholder={ex.type === 'gap' ? 'Ваш ответ' : ex.type === 'translate' ? 'Перевод' : 'Запишите услышанное'}
-            autoCapitalize="off"
-            autoCorrect="off"
-            spellCheck={false}
-            lang={lang === 'kk' ? 'kk' : 'en'}
-            aria-label="Ответ"
-          />
-        )}
-        {'hint' in ex && ex.hint && !checked && <p className="mt-2 text-sm text-ink-soft">Подсказка: {ex.hint}</p>}
+          {(ex.type === 'gap' || ex.type === 'translate' || (ex.type === 'listen' && ex.mode === 'type')) && (
+            <input
+              ref={inputRef}
+              value={value}
+              disabled={!!checked}
+              onChange={(e) => setValue(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && check()}
+              className={cx(inputCls, 'min-h-14 text-[17px]', checked && (checked.correct ? 'border-good bg-good-soft' : 'border-bad bg-bad-soft'))}
+              placeholder={ex.type === 'gap' ? 'Ваш ответ' : ex.type === 'translate' ? 'Перевод' : 'Запишите услышанное'}
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
+              lang={lang === 'kk' ? 'kk' : 'en'}
+              aria-label="Ответ"
+            />
+          )}
+          {'hint' in ex && ex.hint && !checked && <p className="mt-3 text-sm text-ink-soft">Подсказка: {ex.hint}</p>}
+          {!checked && ex.type === 'listen' && !audioText && (
+            <div className="mt-4">
+              <Notice tone="info">Вопрос относится к прослушанному тексту выше.</Notice>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Результат и объяснение */}
       {checked && (
-        <div className="mt-4 space-y-3">
-          <div className={cx('rounded-xl px-3.5 py-3 text-sm', checked.correct || selfAccepted ? 'bg-good-soft text-[#14532d]' : 'bg-bad-soft text-[#7f1d1d]')}>
-            <div className="font-semibold">
-              {selfAccepted ? 'Засчитано по вашему решению' : checked.correct ? (checked.typo ? 'Верно, но с опечаткой' : 'Верно!') : 'Неверно'}
+        <div className="mt-4 space-y-3" aria-live="polite">
+          <div className={cx('rounded-card border p-5', ok ? 'border-good/25 bg-good-soft' : 'border-bad/25 bg-bad-soft')}>
+            <div className="flex items-center gap-2.5">
+              <span className={cx('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white', ok ? 'bg-good' : 'bg-bad')}>
+                <Icon name={ok ? 'check' : 'x'} size={17} strokeWidth={2.75} />
+              </span>
+              <span className={cx('text-lg font-semibold', ok ? 'text-good' : 'text-bad')}>
+                {selfAccepted ? 'Засчитано по вашему решению' : checked.correct ? (checked.typo ? 'Верно, но с опечаткой' : 'Верно!') : 'Неверно'}
+              </span>
             </div>
             {(!checked.correct || checked.typo) && (
-              <div className="mt-1">
-                Правильный ответ: <strong>{correctAnswerText(ex)}</strong>
+              <div className="mt-3">
+                <span className="text-ink-soft">Правильный ответ: </span>
+                <strong className="font-semibold">{correctAnswerText(ex)}</strong>
               </div>
             )}
-            <div className="mt-1 text-ink">
-              <Rich text={ex.explain} />
-            </div>
-            {wrongWhy && <div className="mt-1 text-ink">Почему не ваш вариант: {wrongWhy}</div>}
           </div>
 
-          {ex.type === 'listen' && audioText && <p className="text-sm text-ink-soft">Текст аудио: «{audioText}»</p>}
+          <div className="rounded-card border border-line bg-surface p-5 shadow-card">
+            <div className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-ink-soft">
+              <Icon name="lightbulb" size={17} className="text-warm-ink" />
+              Объяснение
+            </div>
+            <div className="leading-relaxed">
+              <Rich text={ex.explain} />
+            </div>
+            {wrongWhy && (
+              <div className="mt-3 border-t border-line pt-3">
+                <div className="text-sm font-semibold text-ink-soft">Почему не ваш вариант</div>
+                <div className="mt-0.5">{wrongWhy}</div>
+              </div>
+            )}
+            {ex.type === 'listen' && audioText && <p className="mt-3 text-sm text-ink-soft">Текст аудио: «{audioText}»</p>}
+          </div>
 
           {showWhy && !checked.correct && (
-            <div className="space-y-2 rounded-xl border border-line bg-canvas p-3 text-sm">
+            <div className="space-y-2.5 rounded-card border border-line bg-surface p-5 shadow-card">
               <div className="font-semibold">Разбор ошибки</div>
               <p>
-                Ваш ответ: <span className="text-bad">{checked.answer || '—'}</span>. Ожидалось: <span className="text-good">{correctAnswerText(ex)}</span>.
+                Ваш ответ: <span className="font-medium text-bad">{checked.answer || '—'}</span>. Ожидалось: <span className="font-medium text-good">{correctAnswerText(ex)}</span>.
               </p>
               <p>
                 Тема: <strong>{topicName(ex.topic)}</strong>. {ex.explain}
@@ -302,7 +345,7 @@ function ExerciseCard({
               {relatedPitfalls.length > 0 && (
                 <div>
                   <div className="font-medium">Типичные ошибки по этой теме:</div>
-                  <ul className="mt-1 space-y-1">
+                  <ul className="mt-1 space-y-1.5">
                     {relatedPitfalls.map((p, k) => (
                       <li key={k}>
                         <span className="text-bad line-through">{p.wrong}</span> → <span className="text-good">{p.right}</span> — {p.why}
@@ -311,7 +354,7 @@ function ExerciseCard({
                   </ul>
                 </div>
               )}
-              <p className="text-ink-soft">Ошибка сохранена в разделе «Мои ошибки». Позже система предложит новые задания на эту тему.</p>
+              <p className="text-sm text-ink-soft">Ошибка сохранена в разделе «Мои ошибки». Позже система предложит новые задания на эту тему.</p>
               {aiConfigured() && state.settings.ai.enabled ? (
                 <div>
                   {!ai.text && (
@@ -319,26 +362,27 @@ function ExerciseCard({
                       {ai.loading ? 'AI думает…' : 'Подробнее от AI-преподавателя'}
                     </Button>
                   )}
-                  {ai.text && <div className="mt-2 rounded-lg bg-surface p-3 whitespace-pre-line">{ai.text}</div>}
+                  {ai.text && <div className="mt-2 rounded-xl bg-subtle p-3 whitespace-pre-line">{ai.text}</div>}
                   {ai.error && <p className="mt-2 text-bad">{ai.error}</p>}
                 </div>
               ) : (
-                <p className="text-xs text-ink-faint">Объяснение подготовлено заранее. AI-преподаватель не подключён.</p>
+                <p className="text-sm text-ink-soft">Объяснение подготовлено заранее. AI-преподаватель не подключён.</p>
               )}
             </div>
           )}
 
           {moreMsg && <p className="text-sm text-ink-soft">{moreMsg}</p>}
 
+          {/* Второстепенные действия — визуально тише основной кнопки */}
           <div className="flex flex-wrap gap-2">
             {!checked.correct && !showWhy && (
-              <Button variant="secondary" size="sm" icon="lightbulb" onClick={() => setShowWhy(true)}>
+              <Button variant="quiet" size="sm" icon="lightbulb" onClick={() => setShowWhy(true)}>
                 Объясни мою ошибку
               </Button>
             )}
             {!checked.correct && ex.type === 'translate' && !selfAccepted && (
               <Button
-                variant="ghost"
+                variant="quiet"
                 size="sm"
                 onClick={() => {
                   setSelfAccepted(true);
@@ -350,13 +394,13 @@ function ExerciseCard({
               </Button>
             )}
             {onShowRule && (
-              <Button variant="secondary" size="sm" icon="book" onClick={onShowRule}>
+              <Button variant="quiet" size="sm" icon="book" onClick={onShowRule}>
                 Повтори правило
               </Button>
             )}
             {onMore && (
               <Button
-                variant="secondary"
+                variant="quiet"
                 size="sm"
                 icon="plus"
                 onClick={() => {
@@ -371,18 +415,17 @@ function ExerciseCard({
         </div>
       )}
 
-      <div className="mt-5 flex justify-end">
+      <ActionBar>
         {!checked ? (
-          <Button onClick={check} disabled={(options && picked === null) || (ex.type === 'order' && !built.length) || ((ex.type === 'gap' || ex.type === 'translate' || (ex.type === 'listen' && ex.mode === 'type')) && !value.trim())}>
+          <Button size="lg" onClick={check} disabled={!canCheck} variant={lang === 'kk' ? 'kk' : 'primary'}>
             Проверить
           </Button>
         ) : (
-          <Button onClick={onNext} icon={isLast ? 'check' : 'chevronRight'}>
+          <Button size="lg" onClick={onNext} variant={lang === 'kk' ? 'kk' : 'primary'} iconRight={isLast ? 'check' : 'chevronRight'}>
             {isLast ? 'Завершить' : 'Далее'}
           </Button>
         )}
-      </div>
-      {!checked && (ex.type === 'listen' && !audioText) && <Notice tone="info">Вопрос относится к прослушанному тексту выше.</Notice>}
+      </ActionBar>
     </div>
   );
 }

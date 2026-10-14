@@ -5,7 +5,8 @@ import { answerItem, estimateLevel, gapTopics, ITEMS_PER_SKILL, newSkillSession,
 import { useAppState, update, getState } from '../lib/store';
 import type { DiagnosticResult, DiagnosticSession } from '../lib/state';
 import { navigate } from '../lib/router';
-import { Badge, Button, Card, Notice, PageHeader, Progress, cx } from '../components/ui';
+import { ActionBar, Badge, Button, Card, CEFR, Eyebrow, LangTag, LevelScale, Notice, OptionButton, PageHeader, Progress, cx } from '../components/ui';
+import { Icon } from '../components/icons';
 import { SpeakButton } from '../components/Audio';
 import { SpeakRecorder } from '../components/SpeakRecorder';
 import { shuffle, wordCount } from '../lib/text';
@@ -53,54 +54,55 @@ export function DiagnosticPage({ lang, part }: { lang: Lang; part?: string }) {
   const doneCount = all.filter((k) => status(k) !== 'todo' && status(k) !== 'progress').length;
   const objectiveDone = OBJECTIVE_SKILLS.filter((k) => status(k) === 'done').length;
 
+  const tone = lang === 'kk' ? 'kk' : 'primary';
   return (
-    <div className="space-y-4">
-      <PageHeader title={`Диагностика ${LANG_NAME[lang]}`} back="/" subtitle="Адаптивный тест: сложность меняется по вашим ответам. Можно проходить частями." />
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader
+        eyebrow={<LangTag lang={lang} long />}
+        title={`Диагностика ${LANG_NAME[lang]}`}
+        back="/"
+        subtitle="Адаптивный тест: сложность меняется по вашим ответам. Можно проходить частями — прогресс сохраняется."
+      />
       {state.diagnostics[lang].length > 0 && (
         <Notice tone="info">
           Диагностика уже пройдена ({state.diagnostics[lang].length} раз). Повторное прохождение обновит текущий ориентировочный уровень; исходный уровень сохранится.{' '}
-          <button className="underline" onClick={() => navigate(`/diagnostic/${lang}/result`)}>
+          <button className="font-medium underline underline-offset-2" onClick={() => navigate(`/diagnostic/${lang}/result`)}>
             Открыть последний результат
           </button>
         </Notice>
       )}
       <Card>
-        <div className="mb-2 flex justify-between text-sm text-ink-soft">
-          <span>Выполнено частей: {doneCount} из 6</span>
-          <span>≈ 25–35 минут всего</span>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <span className="font-semibold tabular-nums">Выполнено частей: {doneCount} из 6</span>
+          <span className="text-sm text-ink-soft">≈ 25–35 минут всего</span>
         </div>
-        <Progress value={(doneCount / 6) * 100} tone={lang === 'kk' ? 'kk' : 'brand'} />
-        <ul className="mt-3 divide-y divide-line">
-          {all.map((k) => {
+        <Progress value={(doneCount / 6) * 100} tone={lang === 'kk' ? 'kk' : 'brand'} className="mt-3" label="Выполнено частей" />
+        <ul className="mt-4 divide-y divide-line">
+          {all.map((k, idx) => {
             const st = status(k);
             return (
-              <li key={k} className="flex items-center justify-between gap-3 py-3">
-                <div>
-                  <div className="font-medium">{SKILL_NAMES[k]}</div>
-                  <div className="text-xs text-ink-soft">
+              <li key={k} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-4">
+                <span
+                  className={cx(
+                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
+                    st === 'done' ? 'bg-good text-white' : st === 'skipped' ? 'bg-warn-soft text-warn' : lang === 'kk' ? 'bg-kk-soft text-kk' : 'bg-brand-soft text-brand',
+                  )}
+                  aria-hidden="true"
+                >
+                  {st === 'done' ? <Icon name="check" size={18} strokeWidth={2.5} /> : idx + 1}
+                </span>
+                <div className="min-w-0 flex-1 basis-40">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold">{SKILL_NAMES[k]}</span>
+                    {st === 'done' && <Badge tone="good">готово</Badge>}
+                    {st === 'skipped' && <Badge tone="warn">пропущено</Badge>}
+                    {st === 'progress' && <Badge tone={lang === 'kk' ? 'kk' : 'brand'}>в процессе</Badge>}
+                  </div>
+                  <div className="mt-0.5 text-sm text-ink-soft">
                     {k === 'writing' ? 'Короткий текст; без AI проверяются объём и структура' : k === 'speaking' ? 'Запись ответа ≈ 1 минута; без AI — только беглость' : `${ITEMS_PER_SKILL} адаптивных заданий`}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {st === 'done' && <Badge tone="good">готово</Badge>}
-                  {st === 'skipped' && <Badge tone="warn">пропущено</Badge>}
-                  {st === 'progress' && <Badge tone="brand">в процессе</Badge>}
-                  {st !== 'done' && (
-                    <Button
-                      size="sm"
-                      variant={st === 'skipped' ? 'secondary' : lang === 'kk' ? 'kk' : 'primary'}
-                      onClick={() => {
-                        ensureSession(lang);
-                        if (st === 'skipped')
-                          update((d) => {
-                            d.diagSessions[lang]!.skipped = d.diagSessions[lang]!.skipped.filter((x) => x !== k);
-                          });
-                        navigate(`/diagnostic/${lang}/${k}`);
-                      }}
-                    >
-                      {st === 'progress' ? 'Продолжить' : 'Начать'}
-                    </Button>
-                  )}
+                <div className="ml-14 flex items-center gap-2 sm:ml-0">
                   {st === 'todo' && (k === 'writing' || k === 'speaking') && (
                     <Button
                       size="sm"
@@ -115,6 +117,22 @@ export function DiagnosticPage({ lang, part }: { lang: Lang; part?: string }) {
                       Пропустить
                     </Button>
                   )}
+                  {st !== 'done' && (
+                    <Button
+                      size="sm"
+                      variant={st === 'skipped' ? 'secondary' : tone}
+                      onClick={() => {
+                        ensureSession(lang);
+                        if (st === 'skipped')
+                          update((d) => {
+                            d.diagSessions[lang]!.skipped = d.diagSessions[lang]!.skipped.filter((x) => x !== k);
+                          });
+                        navigate(`/diagnostic/${lang}/${k}`);
+                      }}
+                    >
+                      {st === 'progress' ? 'Продолжить' : 'Начать'}
+                    </Button>
+                  )}
                 </div>
               </li>
             );
@@ -122,11 +140,11 @@ export function DiagnosticPage({ lang, part }: { lang: Lang; part?: string }) {
         </ul>
       </Card>
       <Card>
-        <p className="text-sm text-ink-soft">
-          Результат — <strong>ориентировочный учебный уровень</strong>, а не официально подтверждённый. Он нужен для составления плана. Непроверенные навыки будут явно отмечены.
+        <p className="text-ink-soft">
+          Результат — <strong className="text-ink">ориентировочный учебный уровень</strong>, а не официально подтверждённый. Он нужен для составления плана. Непроверенные навыки будут явно отмечены.
         </p>
-        <div className="mt-3 flex justify-end">
-          <Button disabled={objectiveDone < 1} onClick={() => finishDiagnostic(lang)}>
+        <div className="mt-4 flex justify-end">
+          <Button size="lg" variant={tone} disabled={objectiveDone < 1} onClick={() => finishDiagnostic(lang)} className="w-full sm:w-auto">
             {objectiveDone < 4 ? `Завершить с тем, что есть (${objectiveDone}/4 тестовых частей)` : 'Завершить диагностику'}
           </Button>
         </div>
@@ -187,14 +205,21 @@ function SkillRun({ lang, skill }: { lang: Lang; skill: ObjectiveSkill }) {
 
   if (!item || ss.done) {
     return (
-      <div className="space-y-4">
-        <PageHeader title={`${SKILL_NAMES[skill]}: готово`} back={`/diagnostic/${lang}`} />
-        <Card>
-          <p>Часть «{SKILL_NAMES[skill]}» завершена. Ответы сохранены — результат будет показан после завершения диагностики.</p>
-          <div className="mt-3 flex justify-end">
-            <Button onClick={() => navigate(`/diagnostic/${lang}`)}>К списку частей</Button>
+      <div className="mx-auto max-w-2xl space-y-5">
+        <PageHeader eyebrow={<LangTag lang={lang} long />} title={`${SKILL_NAMES[skill]}: готово`} back={`/diagnostic/${lang}`} />
+        <Card tone="good">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-good text-white">
+              <Icon name="check" size={20} strokeWidth={2.5} />
+            </span>
+            <p className="pt-1.5">Часть «{SKILL_NAMES[skill]}» завершена. Ответы сохранены — результат будет показан после завершения диагностики.</p>
           </div>
         </Card>
+        <ActionBar>
+          <Button size="lg" variant={lang === 'kk' ? 'kk' : 'primary'} onClick={() => navigate(`/diagnostic/${lang}`)}>
+            К списку частей
+          </Button>
+        </ActionBar>
       </div>
     );
   }
@@ -210,37 +235,58 @@ function SkillRun({ lang, skill }: { lang: Lang; skill: ObjectiveSkill }) {
     setPlayed(false);
   };
 
+  const n = ss.answers.length;
   return (
-    <div className="space-y-4">
-      <PageHeader title={`Диагностика: ${SKILL_NAMES[skill]}`} back={`/diagnostic/${lang}`} subtitle={`Вопрос ${ss.answers.length + 1} из ${ITEMS_PER_SKILL}`} />
-      <Progress value={(ss.answers.length / ITEMS_PER_SKILL) * 100} tone={lang === 'kk' ? 'kk' : 'brand'} />
-      <Card>
-        {item.passage && <div className="mb-4 rounded-xl bg-canvas p-3 whitespace-pre-line" lang={lang}>{item.passage}</div>}
-        {item.say && (
-          <div className="mb-3">
-            <SpeakButton key={item.id} text={item.say} lang={lang} onPlayed={() => setPlayed(true)} />
-            <p className="mt-1 text-xs text-ink-faint">Озвучка синтезатором устройства. Можно прослушать повторно.</p>
-          </div>
-        )}
-        <p className="text-[17px] font-medium">{item.prompt}</p>
-        <div className="mt-3 grid gap-2">
-          {order.map((k) => (
-            <button key={k} onClick={() => setPicked(k)} disabled={!!item.say && !played} className={cx('min-h-12 rounded-xl border px-4 py-2.5 text-left disabled:opacity-50', picked === k ? 'border-brand bg-brand-soft' : 'border-line hover:bg-canvas')}>
-              {item.options[k]}
-            </button>
+    <div className="mx-auto max-w-2xl">
+      <div className="flex items-center justify-between gap-3">
+        <button onClick={() => navigate(`/diagnostic/${lang}`)} className="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-xl px-2 text-sm font-medium text-ink-soft hover:bg-surface hover:text-ink">
+          <Icon name="x" size={18} />
+          Прервать
+        </button>
+        <span className="text-sm text-ink-soft">прогресс сохраняется</span>
+      </div>
+      <div className="mt-3">
+        <Eyebrow tone={lang === 'kk' ? 'kk' : 'en'}>Диагностика {LANG_NAME[lang]}</Eyebrow>
+        <h1 className="mt-1 text-[26px] leading-tight font-semibold tracking-tight sm:text-[30px]">{SKILL_NAMES[skill]}</h1>
+      </div>
+      <div className="mt-4 flex items-center gap-3">
+        <span className="shrink-0 text-sm font-semibold tabular-nums">
+          Задание {n + 1} из {ITEMS_PER_SKILL}
+        </span>
+        <div className="flex flex-1 gap-1" aria-hidden="true">
+          {Array.from({ length: ITEMS_PER_SKILL }, (_, k) => (
+            <span key={k} className={cx('h-1.5 flex-1 rounded-full', k < n ? (lang === 'kk' ? 'bg-kk/45' : 'bg-brand/45') : k === n ? (lang === 'kk' ? 'bg-kk' : 'bg-brand') : 'bg-line')} />
           ))}
         </div>
-        {item.say && !played && <p className="mt-2 text-sm text-ink-soft">Сначала прослушайте фрагмент.</p>}
-        <p className="mt-3 text-xs text-ink-faint">Правильные ответы не показываются во время диагностики, чтобы не влиять на следующие вопросы. Разбор — в результатах.</p>
-        <div className="mt-4 flex justify-between gap-2">
-          <Button variant="ghost" onClick={() => navigate(`/diagnostic/${lang}`)}>
-            Прервать (прогресс сохранён)
-          </Button>
-          <Button onClick={submit} disabled={picked === null}>
-            Ответить
-          </Button>
+      </div>
+      <Card className="mt-5">
+        {item.passage && (
+          <div className="mb-5 rounded-2xl bg-subtle p-4 text-[17px] leading-relaxed whitespace-pre-line" lang={lang}>
+            {item.passage}
+          </div>
+        )}
+        {item.say && (
+          <div className="mb-5">
+            <SpeakButton key={item.id} text={item.say} lang={lang} onPlayed={() => setPlayed(true)} />
+            <p className="mt-1.5 text-sm text-ink-soft">Озвучка синтезатором устройства. Можно прослушать повторно.</p>
+          </div>
+        )}
+        <p className="text-xl leading-snug font-medium sm:text-[22px]">{item.prompt}</p>
+        <div className="mt-6 grid gap-2.5">
+          {order.map((k, pos) => (
+            <OptionButton key={k} letter={String.fromCharCode(65 + pos)} selected={picked === k} onClick={() => setPicked(k)} disabled={!!item.say && !played} lang={lang}>
+              {item.options[k]}
+            </OptionButton>
+          ))}
         </div>
+        {item.say && !played && <p className="mt-3 text-sm text-ink-soft">Сначала прослушайте фрагмент.</p>}
       </Card>
+      <p className="mt-4 text-sm text-ink-soft">Правильные ответы не показываются во время диагностики, чтобы не влиять на следующие вопросы. Разбор — в результатах.</p>
+      <ActionBar>
+        <Button size="lg" variant={lang === 'kk' ? 'kk' : 'primary'} onClick={submit} disabled={picked === null}>
+          Ответить
+        </Button>
+      </ActionBar>
     </div>
   );
 }
@@ -256,17 +302,17 @@ function WritingPart({ lang }: { lang: Lang }) {
     navigate(`/diagnostic/${lang}`);
   };
   return (
-    <div className="space-y-4">
-      <PageHeader title="Диагностика: письмо" back={`/diagnostic/${lang}`} />
+    <div className="mx-auto max-w-2xl space-y-5">
+      <PageHeader eyebrow={<LangTag lang={lang} long />} title="Диагностика: письмо" back={`/diagnostic/${lang}`} />
       <Card>
-        <p className="font-medium" lang={lang}>
+        <p className="text-[17px] font-medium" lang={lang}>
           {prompt}
         </p>
-        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={9} className="mt-3 w-full rounded-xl border border-line p-3 outline-none focus:border-brand" lang={lang} spellCheck={false} placeholder="Ваш текст…" />
-        <div className="mt-1 text-sm text-ink-soft">Слов: {n}</div>
+        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={9} className="mt-4 w-full rounded-xl border border-line-strong p-3.5 leading-relaxed outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" lang={lang} spellCheck={false} placeholder="Ваш текст…" />
+        <div className="mt-1.5 mb-4 text-sm text-ink-soft tabular-nums">Слов: {n}</div>
         <Notice tone="info">Без AI-проверки уровень письма не определяется — текст сохранится, а навык будет отмечен как «не проверено». Его можно проверить позже в разделе Writing / Жазылым.</Notice>
-        <div className="mt-3 flex justify-end">
-          <Button onClick={save} disabled={n < 10}>
+        <div className="mt-4 flex justify-end">
+          <Button size="lg" onClick={save} disabled={n < 10}>
             Сохранить
           </Button>
         </div>
@@ -278,10 +324,10 @@ function WritingPart({ lang }: { lang: Lang }) {
 function SpeakingPart({ lang }: { lang: Lang }) {
   const prompt = DIAG_SPEAKING_PROMPTS[lang];
   return (
-    <div className="space-y-4">
-      <PageHeader title="Диагностика: говорение" back={`/diagnostic/${lang}`} />
+    <div className="mx-auto max-w-2xl space-y-5">
+      <PageHeader eyebrow={<LangTag lang={lang} long />} title="Диагностика: говорение" back={`/diagnostic/${lang}`} />
       <Card>
-        <p className="font-medium" lang={lang}>
+        <p className="mb-4 text-[17px] font-medium" lang={lang}>
           {prompt}
         </p>
         <SpeakRecorder
@@ -328,26 +374,41 @@ export function DiagnosticResultView({ lang }: { lang: Lang }) {
   const tone = feas.verdict === 'realistic' ? 'good' : feas.verdict === 'possible' ? 'warn' : feas.verdict === 'unlikely' ? 'bad' : 'info';
 
   return (
-    <div className="space-y-4">
-      <PageHeader title={`Результат: ${lang === 'en' ? 'английский' : 'казахский'}`} back="/" subtitle={new Date(r.completedAt).toLocaleDateString('ru-RU')} />
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader eyebrow={<LangTag lang={lang} long />} title="Результат диагностики" back="/" subtitle={new Date(r.completedAt).toLocaleDateString('ru-RU')} />
       <Card tone={lang === 'kk' ? 'kk' : 'en'}>
-        <div className="text-sm text-ink-soft">Предполагаемый (ориентировочный) уровень</div>
-        <div className="text-3xl font-semibold">{r.overall ?? '—'}</div>
-        <p className="mt-1 text-sm text-ink-soft">Это учебная оценка по короткому тесту, а не официально подтверждённый уровень.</p>
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div className="text-sm text-ink-soft">Предполагаемый (ориентировочный) уровень</div>
+            <div className="mt-1 text-5xl leading-none font-semibold tracking-tight">{r.overall ?? '—'}</div>
+          </div>
+          <Badge tone="warm">учебная оценка</Badge>
+        </div>
+        <p className="mt-3 text-sm text-ink-soft">Это учебная оценка по короткому тесту, а не официально подтверждённый уровень.</p>
+        <div className="mt-6 space-y-4">
+          <div className="hidden grid-cols-[minmax(0,10rem)_1fr_4.5rem] gap-4 text-xs text-ink-soft sm:grid">
+            <span />
+            <span className="flex justify-between">
+              {CEFR.map((l) => (
+                <span key={l}>{l}</span>
+              ))}
+            </span>
+            <span />
+          </div>
           {Object.entries(r.skills).map(([k, v]) => (
-            <div key={k} className="rounded-xl border border-line bg-surface px-3 py-2">
-              <div className="text-xs text-ink-soft">{SKILL_NAMES[k]}</div>
-              {v?.tested ? (
-                <>
-                  <div className="font-semibold">{v.level ?? '—'}</div>
-                  <div className="text-xs text-ink-faint">
+            <div key={k} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1.5 sm:grid-cols-[minmax(0,10rem)_1fr_4.5rem]">
+              <div className="min-w-0">
+                <div className="font-medium">{SKILL_NAMES[k]}</div>
+                {v?.tested && (
+                  <div className="text-sm text-ink-soft">
                     {v.correct}/{v.total} верно{v.confidence === 'low' ? ' · мало данных' : ''}
                   </div>
-                </>
-              ) : (
-                <div className="font-medium text-warn">не проверено</div>
-              )}
+                )}
+              </div>
+              <div className="order-last col-span-2 sm:order-none sm:col-span-1">
+                <LevelScale level={v?.tested ? (v.level ?? null) : null} tone={lang === 'kk' ? 'kk' : 'brand'} />
+              </div>
+              <div className={cx('text-right font-semibold', !v?.tested && 'text-sm font-medium text-warn')}>{v?.tested ? (v.level ?? '—') : 'не проверено'}</div>
             </div>
           ))}
         </div>
@@ -360,8 +421,8 @@ export function DiagnosticResultView({ lang }: { lang: Lang }) {
       )}
 
       <Card>
-        <h2 className="font-semibold">Сильные и слабые стороны</h2>
-        <div className="mt-2 grid gap-3 sm:grid-cols-2 text-sm">
+        <h2 className="text-xl font-semibold">Сильные и слабые стороны</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <div className="text-ink-soft">Сильные навыки</div>
             <div className="font-medium">{strong.length ? strong.join(', ') : 'уровни навыков примерно одинаковы'}</div>
@@ -371,10 +432,10 @@ export function DiagnosticResultView({ lang }: { lang: Lang }) {
             <div className="font-medium">{weak.length ? weak.join(', ') : '—'}</div>
           </div>
         </div>
-        <div className="mt-3 text-sm">
-          <div className="text-ink-soft">Пробелы (темы с ошибками)</div>
+        <div className="mt-4">
+          <div className="text-sm text-ink-soft">Пробелы (темы с ошибками)</div>
           {r.gaps.length ? (
-            <div className="mt-1 flex flex-wrap gap-1.5">
+            <div className="mt-2 flex flex-wrap gap-1.5">
               {r.gaps.map((g) => (
                 <Badge key={g} tone="warn">
                   {topicName(g)}
@@ -388,30 +449,30 @@ export function DiagnosticResultView({ lang }: { lang: Lang }) {
       </Card>
 
       <Card>
-        <h2 className="font-semibold">Приоритеты обучения</h2>
-        <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm">
+        <h2 className="text-xl font-semibold">Приоритеты обучения</h2>
+        <ol className="mt-3 list-decimal space-y-1.5 pl-5">
           {weak.length > 0 && <li>Навыки с самым низким уровнем: {weak.join(', ')} — больше блоков в ежедневном плане.</li>}
           {r.gaps.slice(0, 3).map((g) => (
             <li key={g}>Тема «{topicName(g)}» — назначена в повторение.</li>
           ))}
           <li>{lang === 'en' ? 'Ежедневно: грамматика по программе, аудирование, словарь; с этапа 2 — форматы IELTS.' : 'Ежедневно: грамматика (окончания и падежи), словарь, аудирование; с этапа 3 — форматы КАЗТЕСТ.'}</li>
         </ol>
-        <div className="mt-3 text-sm">
+        <div className="mt-4 border-t border-line pt-4">
           Рекомендуемая нагрузка: <strong>{s.settings.dailyMinutes} мин в день</strong> (английский {split.en} мин, казахский {split.kk} мин)
           {s.settings.autoSplit && ' — распределение пересчитано по результатам диагностики.'}
         </div>
       </Card>
 
       <Card tone={tone === 'info' ? undefined : tone}>
-        <h2 className="font-semibold">Реалистичность цели</h2>
-        <p className="mt-1 text-sm">{feas.explanation}</p>
-        {feas55 && feas55.verdict !== feas.verdict && <p className="mt-1 text-sm">Для желательного результата {s.settings.ieltsTarget.toFixed(1)}: {feas55.explanation}</p>}
-        <p className="mt-2 text-xs text-ink-soft">Оценка основана на опубликованных ориентирах учебных часов CEFR (Cambridge English) и не является гарантией результата.</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Button size="sm" variant="secondary" href="/settings">
+        <h2 className="text-xl font-semibold">Реалистичность цели</h2>
+        <p className="mt-2">{feas.explanation}</p>
+        {feas55 && feas55.verdict !== feas.verdict && <p className="mt-2">Для желательного результата {s.settings.ieltsTarget.toFixed(1)}: {feas55.explanation}</p>}
+        <p className="mt-3 text-sm text-ink-soft">Оценка основана на опубликованных ориентирах учебных часов CEFR (Cambridge English) и не является гарантией результата.</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button variant="secondary" href="/settings">
             Изменить нагрузку или срок
           </Button>
-          <Button size="sm" href="/today">
+          <Button href="/today">
             Мой индивидуальный план
           </Button>
         </div>

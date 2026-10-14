@@ -72,7 +72,7 @@ const BOTTOM: { href: string; label: string; icon: IconName; match: (p: string[]
 /** «Режим фокуса»: во время урока, диагностики, экзамена и повторения нижняя навигация скрыта,
  *  чтобы закреплённая кнопка действия не перекрывалась. Выход — кнопка «Назад» в заголовке. */
 export function isFocusRoute(p: string[]) {
-  return p[0] === 'lesson' || p[0] === 'exam' || p[0] === 'checkpoint' || (p[0] === 'diagnostic' && !!p[2]) || ((p[0] === 'vocab' || p[0] === 'mistakes') && p[1] === 'review');
+  return p[0] === 'lesson' || p[0] === 'exam' || p[0] === 'checkpoint' || p[0] === 'practice' || (p[0] === 'diagnostic' && !!p[2]) || ((p[0] === 'vocab' || p[0] === 'mistakes') && p[1] === 'review');
 }
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -86,7 +86,7 @@ export function Layout({ children }: { children: ReactNode }) {
   useEffect(() => setMenu(false), [path]);
 
   return (
-    <div className="min-h-dvh">
+    <div className={cx('min-h-dvh', !focus && 'has-bottom-nav')}>
       <a href="#main" onClick={(e) => (e.preventDefault(), document.getElementById('main')?.focus())} className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:rounded-xl focus:bg-surface focus:px-4 focus:py-3 focus:shadow-raised">
         К содержимому
       </a>

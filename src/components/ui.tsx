@@ -329,6 +329,75 @@ export function Segmented<T extends string | number>({ value, onChange, options 
   );
 }
 
+/** Крупный вариант ответа с буквой (A, B, C…) и чётким выбранным состоянием. */
+export function OptionButton({
+  letter,
+  selected,
+  state,
+  disabled,
+  onClick,
+  children,
+  lang,
+}: {
+  letter: string;
+  selected: boolean;
+  state?: 'right' | 'wrong' | 'dim';
+  disabled?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+  lang?: string;
+}) {
+  return (
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      aria-pressed={selected}
+      lang={lang}
+      className={cx(
+        'flex min-h-14 w-full items-center gap-3.5 rounded-2xl border-2 px-4 py-3 text-left text-[17px] transition-colors disabled:cursor-not-allowed',
+        state === 'right' ? 'border-good bg-good-soft' : state === 'wrong' ? 'border-bad bg-bad-soft' : selected ? 'border-brand bg-brand-soft' : state === 'dim' ? 'border-line opacity-70' : 'border-line hover:border-line-strong hover:bg-subtle disabled:opacity-50',
+      )}
+    >
+      <span
+        aria-hidden="true"
+        className={cx(
+          'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-semibold',
+          state === 'right' ? 'border-good bg-good text-white' : state === 'wrong' ? 'border-bad bg-bad text-white' : selected ? 'border-brand bg-brand text-white' : 'border-line-strong text-ink-soft',
+        )}
+      >
+        {state === 'right' ? <Icon name="check" size={16} strokeWidth={2.75} /> : state === 'wrong' ? <Icon name="x" size={16} strokeWidth={2.75} /> : letter}
+      </span>
+      <span className="min-w-0 flex-1">{children}</span>
+    </button>
+  );
+}
+
+/** Шкала уровня CEFR из шести делений (A0…C1). */
+export const CEFR = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1'];
+export function LevelScale({ level, tone = 'brand' }: { level: string | null; tone?: 'brand' | 'kk' }) {
+  const idx = level ? CEFR.indexOf(level) : -1;
+  return (
+    <div className="flex gap-1" role="img" aria-label={level ? `Уровень ${level} по шкале A0–C1` : 'Не проверено'}>
+      {CEFR.map((l, i) => (
+        <span key={l} className={cx('h-2 flex-1 rounded-full', idx < 0 ? 'border border-dashed border-line-strong' : i <= idx ? (tone === 'kk' ? 'bg-kk' : 'bg-brand') : 'bg-subtle ring-1 ring-line ring-inset')} />
+      ))}
+    </div>
+  );
+}
+
+/** Закреплённая внизу панель главного действия (Проверить / Далее). Учитывает safe area iPhone
+ *  и нижнюю навигацию. На телефоне кнопки растягиваются на всю ширину. */
+export function ActionBar({ children, className = '', left }: { children: ReactNode; className?: string; left?: ReactNode }) {
+  return (
+    <div className={cx('action-bar -mx-4 mt-6 border-t border-line bg-canvas/95 px-4 pt-3 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10', className)}>
+      <div className="flex items-center gap-3">
+        {left && <div className="min-w-0 flex-1 text-sm text-ink-soft">{left}</div>}
+        <div className={cx('flex gap-2', left ? 'shrink-0' : 'flex-1 justify-end', '[&>button]:flex-1 sm:[&>button]:flex-none sm:[&>button]:min-w-40')}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
 export function fmtMin(seconds: number) {
   const m = Math.round(seconds / 60);
   if (m < 60) return `${m} мин`;
