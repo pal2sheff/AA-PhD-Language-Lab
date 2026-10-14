@@ -19,7 +19,7 @@ export function KaztestHub() {
     <div className="space-y-4">
       <PageHeader title="КАЗТЕСТ" subtitle={`Целевой уровень: ${s.settings.kazTargetLevel ?? 'не выбран'}${s.settings.kazRequired ? ` · требование: ${s.settings.kazRequired}` : ''}`} />
       <Card>
-        <h2 className="font-semibold">Структура сертификационного тестирования</h2>
+        <h2 className="text-lg font-semibold">Структура сертификационного тестирования</h2>
         <div className="mt-2 overflow-x-auto">
           <table className="w-full min-w-[420px] text-sm">
             <thead>
@@ -69,7 +69,7 @@ function KazTestCard({ id }: { id: string }) {
   return (
     <Card>
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="font-semibold">{t.title}</h2>
+        <h2 className="text-lg font-semibold">{t.title}</h2>
         <Badge>{questionCount(t)} вопросов</Badge>
         <Badge>{t.minutes} мин</Badge>
         {!t.fullFormat && <Badge tone="warn">частичный формат</Badge>}
@@ -98,7 +98,7 @@ export function KaztestListening() {
     <div className="space-y-4">
       <PageHeader title="Тыңдалым" back="/kaztest" subtitle="20 вопросов, 20 минут" />
       <Card>
-        <h2 className="font-semibold">Как тренироваться</h2>
+        <h2 className="text-lg font-semibold">Как тренироваться</h2>
         <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm">
           <li>Сначала прочитайте вопросы: кто? где? когда? сколько?</li>
           <li>Числа, дни недели и время — частые ответы (урок «Числа, время, даты»).</li>
@@ -124,7 +124,7 @@ export function KaztestReading() {
     <div className="space-y-4">
       <PageHeader title="Оқылым" back="/kaztest" subtitle="Официальный формат: 4 текста, 40 вопросов, 50 минут" />
       <Card>
-        <h2 className="font-semibold">Стратегия</h2>
+        <h2 className="text-lg font-semibold">Стратегия</h2>
         <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm">
           <li>Тексты разного стиля: объявление, публицистика, научно-популярный текст.</li>
           <li>Ищите в тексте ключевые слова вопроса и их синонимы.</li>
@@ -184,7 +184,7 @@ export function KaztestWriting() {
       <Notice tone="info">Автоматически проверяются объём, связки, окончания множественного числа и использование казахских букв. Грамматику и раскрытие темы полноценно оценивает AI или преподаватель.</Notice>
       {(['kaz1', 'kaz2'] as const).map((task) => (
         <Card key={task}>
-          <h2 className="font-semibold">{task === 'kaz1' ? '1-тапсырма: сурет бойынша' : '2-тапсырма: эссе'}</h2>
+          <h2 className="text-lg font-semibold">{task === 'kaz1' ? '1-тапсырма: сурет бойынша' : '2-тапсырма: эссе'}</h2>
           <div className="mt-2 space-y-1">
             {KAZTEST_WRITING.filter((w) => w.task === task).map((w) => (
               <button key={w.id} onClick={() => setId(w.id)} className="w-full rounded-lg px-2 py-2 text-left text-sm hover:bg-canvas">
@@ -207,7 +207,7 @@ export function KaztestSpeaking() {
       <PageHeader title="Айтылым" back="/kaztest" subtitle="2 задания, 7 минут" />
       <div className="flex flex-wrap gap-1.5">
         {KAZTEST_SPEAKING.map((x, i) => (
-          <button key={x.id} onClick={() => setId(x.id)} className={cx('rounded-full border px-3 py-1 text-sm', x.id === id ? 'border-kk bg-kk-soft' : 'border-line')}>
+          <button key={x.id} onClick={() => setId(x.id)} className={cx('min-h-11 rounded-full border px-4 text-sm font-medium', x.id === id ? 'border-kk bg-kk-soft' : 'border-line')}>
             {x.task === 1 ? 'Пікір' : 'Жағдаят'} {i + 1}
           </button>
         ))}

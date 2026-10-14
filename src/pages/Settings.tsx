@@ -25,7 +25,7 @@ export function SettingsPage() {
       <PageHeader title="Настройки" />
 
       <Card>
-        <h2 className="font-semibold">Программа подготовки</h2>
+        <h2 className="text-lg font-semibold">Программа подготовки</h2>
         <p className="text-sm text-ink-soft">При смене срока календарь, распределение тем, контрольные точки и даты пробных экзаменов пересчитываются автоматически. История обучения сохраняется полностью.</p>
         <div className="mt-3">
           <Segmented<CourseDays>
@@ -87,7 +87,7 @@ export function SettingsPage() {
             className="w-full"
             aria-label="Доля английского"
           />
-          <label className="mt-1 flex items-center gap-2 text-sm">
+          <label className="mt-2 flex min-h-11 items-center gap-2.5 text-[15px]">
             <input type="checkbox" checked={st.autoSplit} onChange={(e) => set((d) => void (d.autoSplit = e.target.checked))} />
             Пересчитывать распределение автоматически после диагностики (оба языка всегда остаются в плане)
           </label>
@@ -114,7 +114,7 @@ export function SettingsPage() {
       </Card>
 
       <Card>
-        <h2 className="font-semibold">Цели</h2>
+        <h2 className="text-lg font-semibold">Цели</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <Field label="IELTS: минимальный результат">
             <select className={inputCls} value={st.ieltsMin} onChange={(e) => set((d) => void (d.ieltsMin = Number(e.target.value)))}>
@@ -157,7 +157,7 @@ export function SettingsPage() {
       <DataSettings />
 
       <Card>
-        <h2 className="font-semibold">Диагностика</h2>
+        <h2 className="text-lg font-semibold">Диагностика</h2>
         <p className="text-sm text-ink-soft">Повторная диагностика обновит текущий ориентировочный уровень; исходный результат сохранится в истории.</p>
         <div className="mt-2 flex flex-wrap gap-2">
           <Button variant="secondary" onClick={() => navigate('/diagnostic/en')}>
@@ -234,7 +234,7 @@ function VoiceSettings() {
   const tts = s.settings.tts;
   return (
     <Card>
-      <h2 className="font-semibold">Озвучка и речь</h2>
+      <h2 className="text-lg font-semibold">Озвучка и речь</h2>
       <ul className="mt-1 text-sm text-ink-soft">
         <li>Синтез речи: {ttsSupported() ? 'поддерживается' : 'не поддерживается'}</li>
         <li>Распознавание речи: {recognitionSupported() ? 'поддерживается (сервис браузера)' : 'не поддерживается — доступен текстовый режим'}</li>
@@ -282,7 +282,7 @@ function AiSettings() {
   const [status, setStatus] = useState<string>('');
   return (
     <Card>
-      <h2 className="font-semibold">AI-преподаватель (Claude API)</h2>
+      <h2 className="text-lg font-semibold">AI-преподаватель (Claude API)</h2>
       <p className="text-sm text-ink-soft">
         Расширенная проверка письма, анализ речи, диалоги и генерация упражнений работают через ваш сервер (папка <code>server/</code>), где хранится ключ Anthropic API. Ключ не хранится в браузере.
         <strong> Это платный внешний сервис</strong> — оплата по тарифам Anthropic. Без него все базовые функции работают с заранее подготовленными объяснениями.
@@ -295,7 +295,7 @@ function AiSettings() {
           <input type="password" className={inputCls} value={ai.token} onChange={(e) => update((x) => void (x.settings.ai.token = e.target.value.trim()))} autoComplete="off" />
         </Field>
       </div>
-      <label className="mt-3 flex items-center gap-2 text-sm">
+      <label className="mt-3 flex min-h-11 items-center gap-2.5 text-[15px]">
         <input type="checkbox" checked={ai.enabled} onChange={(e) => update((x) => void (x.settings.ai.enabled = e.target.checked))} /> Включить платные AI-функции
       </label>
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -336,7 +336,7 @@ function SyncSettings() {
   };
   return (
     <Card>
-      <h2 className="font-semibold">Облачная синхронизация (компьютер ↔ iPhone)</h2>
+      <h2 className="text-lg font-semibold">Облачная синхронизация (компьютер ↔ iPhone)</h2>
       <p className="text-sm text-ink-soft">
         Без настройки данные хранятся <strong>только на этом устройстве</strong> (локально, это не синхронизация). Для работы с нескольких устройств разверните сервер из папки <code>server/</code> и укажите его адрес и
         личный токен синхронизации на каждом устройстве.
@@ -395,7 +395,7 @@ function DataSettings() {
   const save = getSaveStatus();
   return (
     <Card>
-      <h2 className="font-semibold">Данные и резервные копии</h2>
+      <h2 className="text-lg font-semibold">Данные и резервные копии</h2>
       <ul className="mt-1 text-sm text-ink-soft">
         <li>Хранение: IndexedDB браузера + резервная копия в localStorage{save ? ` · последнее сохранение ${new Date(save.at).toLocaleTimeString('ru-RU')} (${save.idb ? 'IndexedDB' : ''}${save.idb && save.ls ? ' + ' : ''}${save.ls ? 'localStorage' : ''})` : ''}</li>
         <li>Последний экспорт: {s.lastBackupAt ? new Date(s.lastBackupAt).toLocaleString('ru-RU') : 'не выполнялся'}</li>

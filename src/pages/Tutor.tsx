@@ -30,7 +30,7 @@ function MemoryCard({ lang }: { lang: Lang }) {
   const weak = weakTopics(s, lang).slice(0, 4);
   return (
     <Card>
-      <h2 className="font-semibold">Что преподаватель помнит о ваших ошибках</h2>
+      <h2 className="text-lg font-semibold">Что преподаватель помнит о ваших ошибках</h2>
       {weak.length ? (
         <>
           <p className="text-sm text-ink-soft">По этим темам план автоматически назначает дополнительные упражнения.</p>
@@ -71,7 +71,7 @@ function OfflineTutor({ lang }: { lang: Lang }) {
         Свободный диалог с AI-преподавателем недоступен. Ниже работает система заранее подготовленных объяснений: поиск по правилам, примерам и типичным ошибкам всех уроков. Подключить AI можно в Настройках (платный сервис).
       </Notice>
       <Card>
-        <h2 className="font-semibold">Задайте вопрос по грамматике</h2>
+        <h2 className="text-lg font-semibold">Задайте вопрос по грамматике</h2>
         <input className={cx(inputCls, 'mt-2')} value={q} onChange={(e) => setQ(e.target.value)} placeholder={lang === 'en' ? 'например: since for, артикли, have been' : 'например: падеж, -ға -ге, множественное'} />
         <div className="mt-3 space-y-2">
           {q && results.length === 0 && <p className="text-sm text-ink-soft">Ничего не найдено. Попробуйте другие слова или откройте список тем ниже.</p>}
@@ -109,7 +109,7 @@ function OfflineTutor({ lang }: { lang: Lang }) {
         </div>
       </Card>
       <Card>
-        <h2 className="font-semibold">Все темы с объяснениями</h2>
+        <h2 className="text-lg font-semibold">Все темы с объяснениями</h2>
         <div className="mt-1">
           {lessons.map((l) => (
             <LinkRow key={l.id} href={`/lesson/${l.id}`} title={l.title} subtitle={l.simple.slice(0, 90) + '…'} />
@@ -159,7 +159,7 @@ function AiChat({ lang }: { lang: Lang }) {
   return (
     <Card>
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold">Диалог с преподавателем</h2>
+        <h2 className="text-lg font-semibold">Диалог с преподавателем</h2>
         <Badge tone="good">AI подключён</Badge>
       </div>
       <p className="text-xs text-ink-soft">Преподаватель получает сводку ваших частых ошибок и уровня, чтобы учитывать историю обучения. Ответы AI могут содержать неточности.</p>

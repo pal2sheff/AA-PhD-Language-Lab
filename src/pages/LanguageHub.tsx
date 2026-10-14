@@ -54,7 +54,7 @@ export function LanguageHub({ lang }: { lang: Lang }) {
 
       {weak.length > 0 && (
         <Card tone="warn">
-          <h2 className="font-semibold">Темы, требующие внимания</h2>
+          <h2 className="text-lg font-semibold">Темы, требующие внимания</h2>
           <div className="mt-2 space-y-1">
             {weak.slice(0, 5).map((w) => (
               <LinkRow key={w.topic} href={`/practice/${encodeURIComponent(w.topic)}`} title={topicName(w.topic)} subtitle={`точность ${Math.round(w.accuracy * 100)}%, открытых ошибок: ${w.open}`} />
@@ -64,7 +64,7 @@ export function LanguageHub({ lang }: { lang: Lang }) {
       )}
 
       <Card>
-        <h2 className="mb-1 font-semibold">Программа курса</h2>
+        <h2 className="mb-1 text-lg font-semibold">Программа курса</h2>
         <p className="mb-2 text-sm text-ink-soft">Темы с готовым материалом открываются сразу. Темы с пометкой «в разработке» запланированы, но учебный материал для них ещё не создан.</p>
         <ul className="divide-y divide-line">
           {units.map((u, i) => {
@@ -102,7 +102,7 @@ export function LanguageHub({ lang }: { lang: Lang }) {
       </Card>
 
       <Card>
-        <h2 className="mb-1 font-semibold">Тренажёры</h2>
+        <h2 className="mb-1 text-lg font-semibold">Тренажёры</h2>
         <LinkRow href={`/vocab/review/${lang}`} icon="cards" title="Повторение слов" subtitle={`${vs.due} к повтору сейчас`} />
         <LinkRow href={`/dictation/${lang}`} icon="headphones" title="Аудиодиктанты" />
         <LinkRow href={`/pronunciation/${lang}`} icon="mic" title="Произношение: повтор за диктором" />

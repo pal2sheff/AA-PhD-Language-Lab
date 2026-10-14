@@ -53,7 +53,7 @@ export function EmergencyPage() {
       </Card>
 
       <Card>
-        <h2 className="font-semibold">Приоритеты (определены автоматически)</h2>
+        <h2 className="text-lg font-semibold">Приоритеты (определены автоматически)</h2>
         {!diag && <p className="text-sm text-warn">Диагностика не пройдена — приоритеты неточны.</p>}
         {skills.length > 0 && (
           <div className="mt-2 flex flex-wrap items-center gap-1.5 text-sm">
@@ -79,7 +79,7 @@ export function EmergencyPage() {
       </Card>
 
       <Card>
-        <h2 className="font-semibold">План на 14 дней</h2>
+        <h2 className="text-lg font-semibold">План на 14 дней</h2>
         <ul className="mt-2 space-y-2">
           {PLAN_14.map((p) => (
             <li key={p.days} className="flex gap-3 text-sm">

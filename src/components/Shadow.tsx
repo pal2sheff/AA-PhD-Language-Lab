@@ -77,7 +77,7 @@ export function ShadowItem({ text, ru, lang, note }: { text: string; ru?: string
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <SpeakButton text={text} lang={lang} compact rate={slow ? 0.65 : undefined} />
-        <label className="flex items-center gap-1.5 text-sm text-ink-soft">
+        <label className="flex min-h-11 items-center gap-2 px-1 text-sm text-ink-soft">
           <input type="checkbox" checked={slow} onChange={(e) => setSlow(e.target.checked)} /> медленно
         </label>
         {!recording ? (

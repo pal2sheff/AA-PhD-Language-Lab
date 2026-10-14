@@ -74,7 +74,7 @@ export function ExamsPage() {
       {tab === 'ielts' ? (
         <>
           <Card>
-            <h2 className="font-semibold">Полный пробный IELTS</h2>
+            <h2 className="text-lg font-semibold">Полный пробный IELTS</h2>
             <p className="text-sm text-ink-soft">Пройдите модули по порядку, как на экзамене: Listening → Reading → Writing → Speaking. Результат каждого модуля сохраняется.</p>
             <ol className="mt-3 space-y-2">
               {IELTS_LISTENING_TESTS.map((t) => (
@@ -88,7 +88,7 @@ export function ExamsPage() {
             </ol>
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
               <span>Оценка Speaking от преподавателя:</span>
-              <input value={speakManual} onChange={(e) => setSpeakManual(e.target.value)} className="w-20 rounded-lg border border-line px-2 py-1" placeholder="5.5" inputMode="decimal" />
+              <input value={speakManual} onChange={(e) => setSpeakManual(e.target.value)} className="min-h-11 w-24 rounded-xl border border-line-strong px-3" placeholder="5.5" inputMode="decimal" />
               <Button
                 size="sm"
                 variant="secondary"
@@ -106,7 +106,7 @@ export function ExamsPage() {
             </div>
           </Card>
           <Card tone={overall !== null ? 'brand' : undefined}>
-            <h2 className="font-semibold">Ориентировочный общий результат</h2>
+            <h2 className="text-lg font-semibold">Ориентировочный общий результат</h2>
             {overall !== null ? (
               <>
                 <div className="text-3xl font-semibold">{overall.toFixed(1)}</div>
@@ -125,7 +125,7 @@ export function ExamsPage() {
       ) : (
         <>
           <Card>
-            <h2 className="font-semibold">Пробный КАЗТЕСТ</h2>
+            <h2 className="text-lg font-semibold">Пробный КАЗТЕСТ</h2>
             <ol className="mt-3 space-y-2">
               {KAZTEST_TESTS.map((t, i) => (
                 <Row key={t.id} n={i + 1} title={`${KAZTEST_STRUCTURE[t.section].kz} (${questionCount(t)} вопр., ${t.minutes} мин)${t.fullFormat ? '' : ' — неполный формат'}`} done={kazBlock(t.section) ? `${kazBlock(t.section)!.correct}/${kazBlock(t.section)!.total}` : null} onStart={() => navigate(`/exam/${t.id}/exam`)} />
@@ -135,7 +135,7 @@ export function ExamsPage() {
             </ol>
           </Card>
           <Card>
-            <h2 className="font-semibold">Результаты по блокам</h2>
+            <h2 className="text-lg font-semibold">Результаты по блокам</h2>
             <ul className="mt-2 space-y-1 text-sm">
               {kazChecks.map((c) => (
                 <li key={c.block} className="flex flex-wrap items-center justify-between gap-2">

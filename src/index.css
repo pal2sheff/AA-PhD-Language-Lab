@@ -141,3 +141,16 @@ button {
     animation: none !important;
   }
 }
+
+/* Флажки: крупнее и в фирменном цвете (вся подпись — область нажатия) */
+input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: var(--color-brand);
+  vertical-align: -4px;
+}
+input[type='range'] {
+  accent-color: var(--color-brand);
+  min-height: 32px;
+}

@@ -144,7 +144,7 @@ function ExamDates() {
 
   return (
     <Card>
-      <h2 className="font-semibold">Даты экзаменов и сроки</h2>
+      <h2 className="text-lg font-semibold">Даты экзаменов и сроки</h2>
       <p className="text-sm text-ink-soft">Введите подтверждённые даты. Приложение не придумывает даты экзаменов — официальное расписание смотрите на ielts.org (и у местного организатора) и testcenter.kz.</p>
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <Field label="IELTS Academic" hint={ed.ielts ? `через ${daysWord(Math.max(0, left(ed.ielts)!))}` : undefined}>
@@ -158,10 +158,10 @@ function ExamDates() {
         </Field>
       </div>
       <div className="mt-3 flex flex-wrap gap-4 text-sm">
-        <label className="flex items-center gap-2">
+        <label className="flex min-h-11 items-center gap-2.5">
           <input type="checkbox" checked={ed.ieltsRegistered} onChange={(e) => update((x) => void (x.examDates.ieltsRegistered = e.target.checked))} /> Зарегистрирован(а) на IELTS
         </label>
-        <label className="flex items-center gap-2">
+        <label className="flex min-h-11 items-center gap-2.5">
           <input type="checkbox" checked={ed.kaztestRegistered} onChange={(e) => update((x) => void (x.examDates.kaztestRegistered = e.target.checked))} /> Зарегистрирован(а) на КАЗТЕСТ
         </label>
       </div>

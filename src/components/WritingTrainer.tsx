@@ -140,7 +140,7 @@ export function WritingTrainer({ lang, task, promptId, prompt, extra, minutes, m
       ) : (
         <>
           <Card>
-            <h3 className="font-semibold">Автоматическая проверка</h3>
+            <h3 className="text-[17px] font-semibold">Автоматическая проверка</h3>
             <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
               <div className="rounded-lg bg-canvas px-2 py-1.5">
                 Слов: <strong>{report.words}</strong>
@@ -165,7 +165,7 @@ export function WritingTrainer({ lang, task, promptId, prompt, extra, minutes, m
             {report.repeated.length > 0 && <p className="mt-2 text-sm">Частые повторы: {report.repeated.map((r) => `${r.word} (${r.count})`).join(', ')} — подберите синонимы.</p>}
           </Card>
           <Card>
-            <h3 className="font-semibold">Найденные ошибки ({report.findings.length})</h3>
+            <h3 className="text-[17px] font-semibold">Найденные ошибки ({report.findings.length})</h3>
             <p className="text-sm text-ink-soft">Сначала попробуйте исправить сами — подсказка указывает на правило; исправление можно открыть.</p>
             {report.findings.length === 0 ? (
               <p className="mt-2 text-sm">Правила автоматической проверки ошибок не нашли. Это не означает, что ошибок нет: автоматическая проверка охватывает только частые шаблоны.</p>
@@ -194,7 +194,7 @@ export function WritingTrainer({ lang, task, promptId, prompt, extra, minutes, m
           </Card>
           {(task === 'ielts1' || task === 'ielts2') && (
             <Card>
-              <h3 className="font-semibold">Самопроверка по критериям IELTS</h3>
+              <h3 className="text-[17px] font-semibold">Самопроверка по критериям IELTS</h3>
               <ul className="mt-2 space-y-1.5 text-sm">
                 {IELTS_SELF_CHECK[task].map((c) => (
                   <li key={c.id}>
@@ -223,7 +223,7 @@ export function WritingTrainer({ lang, task, promptId, prompt, extra, minutes, m
             </Card>
           )}
           <Card>
-            <h3 className="font-semibold">Оценка по официальным критериям</h3>
+            <h3 className="text-[17px] font-semibold">Оценка по официальным критериям</h3>
             {aiConfigured() ? (
               <>
                 {!ai.res && (
@@ -306,7 +306,7 @@ export function WritingTrainer({ lang, task, promptId, prompt, extra, minutes, m
 
       {past.length > 0 && (
         <Card>
-          <h3 className="font-semibold">Предыдущие попытки ({past.length})</h3>
+          <h3 className="text-[17px] font-semibold">Предыдущие попытки ({past.length})</h3>
           <ul className="mt-2 space-y-1 text-sm">
             {past.slice(0, 5).map((w) => (
               <li key={w.id} className="flex justify-between gap-2">

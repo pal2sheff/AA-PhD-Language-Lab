@@ -26,13 +26,13 @@ export function PronunciationPage({ lang }: { lang: Lang }) {
       </div>
       <div className="flex flex-wrap gap-1.5">
         {sets.map((s) => (
-          <button key={s.id} onClick={() => setId(s.id)} className={cx('rounded-full border px-3 py-1.5 text-sm', s.id === id ? 'border-brand bg-brand-soft text-brand-ink' : 'border-line')}>
+          <button key={s.id} onClick={() => setId(s.id)} className={cx('min-h-11 rounded-full border px-4 text-sm font-medium', s.id === id ? 'border-brand bg-brand-soft text-brand-ink' : 'border-line')}>
             {s.title}
           </button>
         ))}
       </div>
       <Card>
-        <h2 className="font-semibold">{set.title}</h2>
+        <h2 className="text-lg font-semibold">{set.title}</h2>
         <p className="mt-1 text-sm">{set.focus}</p>
         <VoiceLabel lang={lang} />
         {lang === 'kk' && !voiceInfo('kk').ok && (
@@ -65,7 +65,7 @@ export function DictationPage({ lang }: { lang: Lang }) {
       <Tabs value={lang} onChange={(l) => navigate(`/dictation/${l}`)} items={[{ value: 'en', label: 'Английский' }, { value: 'kk', label: 'Казахский' }]} />
       <div className="flex flex-wrap gap-1.5">
         {items.map((it, i) => (
-          <button key={it.id} onClick={() => setIdx(i)} className={cx('rounded-full border px-3 py-1.5 text-sm', i === idx ? 'border-brand bg-brand-soft text-brand-ink' : 'border-line')}>
+          <button key={it.id} onClick={() => setIdx(i)} className={cx('min-h-11 rounded-full border px-4 text-sm font-medium', i === idx ? 'border-brand bg-brand-soft text-brand-ink' : 'border-line')}>
             {i + 1}. {it.title} <span className="text-ink-faint">{it.level}</span>
           </button>
         ))}
@@ -111,7 +111,7 @@ function Dictation({ item, lang, onNext }: { item: DictationItem; lang: Lang; on
   return (
     <Card>
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="font-semibold">{item.title}</h2>
+        <h2 className="text-lg font-semibold">{item.title}</h2>
         <Badge>{item.level}</Badge>
         <Badge>{item.kind === 'words' ? 'слова' : item.kind === 'sentence' ? 'предложение' : item.kind === 'text' ? 'текст' : item.kind === 'gaps' ? 'пропуски' : 'по памяти'}</Badge>
       </div>

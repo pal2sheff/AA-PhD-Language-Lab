@@ -90,7 +90,7 @@ await step('4. Диагностика казахского частями (2 ч�
 
 await step('5. Индивидуальный план на сегодня сформирован', async () => {
   await go('/today');
-  await page.getByRole('heading', { name: 'Мои занятия' }).waitFor();
+  await page.getByRole('heading', { name: 'Сегодня', exact: true }).waitFor();
   const items = await page.locator('main ul li').count();
   assert(items >= 4, 'в плане меньше 4 блоков: ' + items);
   await page.getByText(/Урок: Глагол to be/).waitFor();
@@ -148,7 +148,7 @@ await step('12–13. Закрыть и открыть снова: прогрес
   await page2.goto(`${BASE}/#/mistakes`);
   await page2.getByText('I ___ a surgeon.').waitFor();
   await page2.goto(`${BASE}/#/`);
-  await page2.getByText(/Сегодня: день 1 из 90/).waitFor();
+  await page2.getByText(/День 1 из 90/).waitFor();
   await page2.close();
 });
 
@@ -170,7 +170,11 @@ await step('Таймер экзамена идёт; экзамен заверш�
   await page.waitForTimeout(2200);
   const t2 = await page.locator('span.font-mono').first().innerText();
   assert(t1 !== t2, `таймер не идёт: ${t1} → ${t2}`);
+  // На телефоне текст и вопросы — на разных вкладках; ответы не теряются при переключении
+  await page.getByRole('tab', { name: /Вопросы/ }).click();
   await btn('TRUE').first().click();
+  await page.getByRole('tab', { name: 'Текст' }).click();
+  await page.getByRole('tab', { name: /Вопросы \(1\// }).waitFor();
   page.once('dialog', (d) => d.accept());
   await btn('Завершить', true).click();
   await page.getByText('ориентировочный band').waitFor();
@@ -193,7 +197,7 @@ await step('Микрофон: запрос разрешения и запись 
 });
 
 await step('Все разделы открываются без ошибок и без горизонтальной прокрутки', async () => {
-  const routes = ['/', '/today', '/en', '/kk', '/ielts', '/ielts/reading', '/ielts/listening', '/ielts/writing', '/ielts/speaking', '/kaztest', '/kaztest/listening', '/kaztest/reading', '/kaztest/writing', '/kaztest/speaking', '/tutor', '/conversation', '/pronunciation/kk', '/dictation/en', '/dictation/kk', '/vocab', '/mistakes', '/mistakes/review/en', '/exams', '/calendar', '/stats', '/settings', '/medical', '/emergency', '/checkpoint/en', '/practice/en.articles'];
+  const routes = ['/', '/today', '/courses', '/exam-center', '/en', '/kk', '/ielts', '/ielts/reading', '/ielts/listening', '/ielts/writing', '/ielts/speaking', '/kaztest', '/kaztest/listening', '/kaztest/reading', '/kaztest/writing', '/kaztest/speaking', '/tutor', '/conversation', '/pronunciation/kk', '/dictation/en', '/dictation/kk', '/vocab', '/mistakes', '/mistakes/review/en', '/exams', '/calendar', '/stats', '/settings', '/medical', '/emergency', '/checkpoint/en', '/practice/en.articles'];
   for (const r of routes) {
     await go(r);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -214,9 +218,9 @@ await step('Writing: подсчёт слов и автоматическая п�
   await page.getByText('i am agree', { exact: false }).first().waitFor();
 });
 
-await step('Нет неработающих кнопок на главной: «Начать занятие» открывает урок/диагностику', async () => {
+await step('Нет неработающих кнопок на главной: «Продолжить занятие» открывает урок/диагностику', async () => {
   await go('/');
-  await btn('Начать занятие').click();
+  await btn('Продолжить занятие').click();
   await page.waitForTimeout(400);
   assert(!page.url().endsWith('#/'), 'кнопка не перешла никуда');
 });

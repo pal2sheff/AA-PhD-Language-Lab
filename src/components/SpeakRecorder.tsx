@@ -186,9 +186,9 @@ export function SpeakRecorder({
           <label className="block text-sm font-medium">Транскрипция {recognitionSupported() ? '(распознано автоматически — исправьте ошибки распознавания)' : '(введите вручную)'}</label>
           <textarea value={transcript} onChange={(e) => setTranscript(e.target.value)} rows={4} className="w-full rounded-xl border border-line p-3 outline-none focus:border-brand" lang={lang} />
           {!supported && (
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex min-h-11 items-center gap-2 text-sm">
               Длительность ответа (сек):
-              <input type="number" min={0} value={seconds} onChange={(e) => setSeconds(Number(e.target.value))} className="w-24 rounded-lg border border-line px-2 py-1" />
+              <input type="number" min={0} value={seconds} onChange={(e) => setSeconds(Number(e.target.value))} className="min-h-11 w-24 rounded-xl border border-line-strong px-3 py-1" />
             </label>
           )}
           <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">

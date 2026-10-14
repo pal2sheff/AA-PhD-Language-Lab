@@ -45,7 +45,7 @@ export function MistakesPage() {
       <Tabs value={lang} onChange={setLang} items={[{ value: 'all', label: 'Все' }, { value: 'en', label: 'Английский' }, { value: 'kk', label: 'Казахский' }]} />
       {topTopics.length > 0 && (
         <Card>
-          <h2 className="font-semibold">Повторяющиеся ошибки по темам</h2>
+          <h2 className="text-lg font-semibold">Повторяющиеся ошибки по темам</h2>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {topTopics.map(([t, n]) => (
               <a key={t} href={`#/practice/${encodeURIComponent(t)}`}>
@@ -59,14 +59,14 @@ export function MistakesPage() {
       )}
       <div className="flex flex-wrap gap-1.5">
         {(['all', ...Object.keys(CAT_NAMES)] as (MistakeCategory | 'all')[]).map((c) => (
-          <button key={c} onClick={() => setCat(c)} className={cx('rounded-full border px-3 py-1 text-sm', cat === c ? 'border-brand bg-brand-soft text-brand-ink' : 'border-line text-ink-soft')}>
+          <button key={c} onClick={() => setCat(c)} className={cx('min-h-11 rounded-full border px-4 text-sm font-medium', cat === c ? 'border-brand bg-brand-soft text-brand-ink' : 'border-line text-ink-soft')}>
             {c === 'all' ? 'все категории' : CAT_NAMES[c]}
           </button>
         ))}
       </div>
       <div className="flex gap-1.5">
         {(['open', 'fixed', 'all'] as const).map((x) => (
-          <button key={x} onClick={() => setStatus(x)} className={cx('rounded-full border px-3 py-1 text-sm', status === x ? 'border-ink bg-ink text-white' : 'border-line text-ink-soft')}>
+          <button key={x} onClick={() => setStatus(x)} className={cx('min-h-11 rounded-full border px-4 text-sm font-medium', status === x ? 'border-ink bg-ink text-white' : 'border-line text-ink-soft')}>
             {x === 'open' ? 'не исправлены' : x === 'fixed' ? 'исправлены' : 'все'}
           </button>
         ))}

@@ -111,7 +111,7 @@ function GuidedDialog({ sc, onExit }: { sc: Scenario; onExit: () => void }) {
       <div className="space-y-4">
         <PageHeader title={`Итог: ${sc.title}`} back="/conversation" />
         <Card>
-          <h3 className="font-semibold">Ваши ответы</h3>
+          <h3 className="text-[17px] font-semibold">Ваши ответы</h3>
           <ul className="mt-2 space-y-2 text-sm">
             {log.map((l) => (
               <li key={l.turn} className="rounded-lg bg-canvas p-2.5">
@@ -123,7 +123,7 @@ function GuidedDialog({ sc, onExit }: { sc: Scenario; onExit: () => void }) {
           </ul>
         </Card>
         <Card>
-          <h3 className="font-semibold">Анализ (без AI)</h3>
+          <h3 className="text-[17px] font-semibold">Анализ (без AI)</h3>
           <ul className="mt-1 space-y-1 text-sm">
             <li>Использованные выражения сценария: {used.length ? used.map((u) => u.t).join('; ') : 'не найдены'}</li>
             <li>Ответов без ожидаемых конструкций: {weak.length} из {log.length}</li>
@@ -131,7 +131,7 @@ function GuidedDialog({ sc, onExit }: { sc: Scenario; onExit: () => void }) {
           <p className="mt-2 text-xs text-ink-soft">Автоматически проверяется только наличие ключевых конструкций. Грамматические ошибки в свободной речи без AI не анализируются — сравните ответы с образцами.</p>
         </Card>
         <Card>
-          <h3 className="font-semibold">Новые выражения для повторения</h3>
+          <h3 className="text-[17px] font-semibold">Новые выражения для повторения</h3>
           <ul className="mt-1 space-y-1 text-sm">
             {sc.phrases.map((p) => (
               <li key={p.t}>
@@ -309,9 +309,9 @@ function AiDialog({ sc, onExit }: { sc: Scenario; onExit: () => void }) {
       {summary && (
         <Card>
           <Notice tone="warn">Предварительный анализ AI по тексту диалога.</Notice>
-          <h3 className="mt-2 font-semibold">Использованные выражения</h3>
+          <h3 className="mt-2 text-[17px] font-semibold">Использованные выражения</h3>
           <p className="text-sm">{summary.phrases.join('; ') || '—'}</p>
-          <h3 className="mt-2 font-semibold">Ошибки</h3>
+          <h3 className="mt-2 text-[17px] font-semibold">Ошибки</h3>
           <ul className="space-y-1 text-sm">
             {summary.issues.map((x, i) => (
               <li key={i}>
@@ -319,7 +319,7 @@ function AiDialog({ sc, onExit }: { sc: Scenario; onExit: () => void }) {
               </li>
             ))}
           </ul>
-          <h3 className="mt-2 font-semibold">Новые слова</h3>
+          <h3 className="mt-2 text-[17px] font-semibold">Новые слова</h3>
           <ul className="text-sm">
             {summary.newWords.map((w) => (
               <li key={w.word}>
@@ -330,7 +330,7 @@ function AiDialog({ sc, onExit }: { sc: Scenario; onExit: () => void }) {
           <Button size="sm" variant="secondary" className="mt-2" onClick={() => summary.newWords.forEach((w) => addCustomWord(sc.lang, w.word, w.translation, '', '', 'Разговорные фразы'))}>
             Добавить слова в словарь
           </Button>
-          <h3 className="mt-2 font-semibold">Рекомендации</h3>
+          <h3 className="mt-2 text-[17px] font-semibold">Рекомендации</h3>
           <ul className="list-disc pl-5 text-sm">
             {summary.recommendations.map((r) => (
               <li key={r}>{r}</li>

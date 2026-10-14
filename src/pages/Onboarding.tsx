@@ -38,7 +38,7 @@ export function Onboarding() {
         </p>
       </Card>
       <Card>
-        <h2 className="font-semibold">1. Продолжительность программы</h2>
+        <h2 className="text-lg font-semibold">1. Продолжительность программы</h2>
         <div className="mt-2">
           <Segmented<CourseDays>
             value={days}
@@ -53,20 +53,20 @@ export function Onboarding() {
         <p className="mt-2 text-sm text-ink-soft">Срок можно изменить позже в Настройках — история обучения сохранится. Реалистичность цели будет оценена после диагностики.</p>
       </Card>
       <Card>
-        <h2 className="font-semibold">2. Сколько времени в день вы готовы заниматься?</h2>
+        <h2 className="text-lg font-semibold">2. Сколько времени в день вы готовы заниматься?</h2>
         <div className="mt-2">
           <Segmented<DailyMinutes> value={mins} onChange={setMins} options={[30, 45, 60, 90, 120].map((m) => ({ value: m as DailyMinutes, label: `${m} мин${m === 90 ? ' (рекомендуется)' : ''}` }))} />
         </div>
         <p className="mt-2 text-sm text-ink-soft">По умолчанию 2/3 времени — английский, 1/3 — казахский. После диагностики распределение уточнится. Заниматься можно блоками по 5–15 минут в течение дня.</p>
       </Card>
       <Card>
-        <h2 className="font-semibold">3. Дата начала</h2>
+        <h2 className="text-lg font-semibold">3. Дата начала</h2>
         <Field label="День 1 программы">
           <input type="date" className={inputCls} value={start} onChange={(e) => e.target.value && setStart(e.target.value)} />
         </Field>
       </Card>
       <Card>
-        <h2 className="font-semibold">4. Диагностика</h2>
+        <h2 className="text-lg font-semibold">4. Диагностика</h2>
         <p className="text-sm text-ink-soft">
           Адаптивные тесты по грамматике, лексике, чтению и аудированию, плюс образцы письма и речи. Около 25–35 минут на язык, можно проходить частями. Результат — ориентировочный учебный уровень, не официальный сертификат.
         </p>

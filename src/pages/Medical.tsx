@@ -21,7 +21,7 @@ export function MedicalPage() {
         MED_TERMS.map((g) => (
           <Card key={g.title}>
             <div className="flex items-center justify-between gap-2">
-              <h2 className="font-semibold">{g.title}</h2>
+              <h2 className="text-lg font-semibold">{g.title}</h2>
               <Button
                 size="sm"
                 variant="secondary"
@@ -52,7 +52,7 @@ export function MedicalPage() {
       {tab === 'abstract' &&
         MED_ABSTRACTS.map((a) => (
           <Card key={a.id}>
-            <h2 className="font-semibold">{a.title}</h2>
+            <h2 className="text-lg font-semibold">{a.title}</h2>
             <p className="text-xs text-ink-soft">Исследование вымышленное и создано для обучения; цифры не являются научными данными.</p>
             <div className="mt-3 space-y-3">
               {a.parts.map((p) => (
@@ -79,7 +79,7 @@ export function MedicalPage() {
       {tab === 'phrases' &&
         MED_PHRASES.map((g) => (
           <Card key={g.title}>
-            <h2 className="font-semibold">{g.title}</h2>
+            <h2 className="text-lg font-semibold">{g.title}</h2>
             <ul className="mt-2 space-y-2">
               {g.items.map((p) => (
                 <li key={p.en} className="flex items-start gap-3">
@@ -96,7 +96,7 @@ export function MedicalPage() {
       {tab === 'quiz' &&
         (quiz ? (
           <Card>
-            <h2 className="font-semibold">
+            <h2 className="text-lg font-semibold">
               Результат: {quiz.filter((r) => r.correct).length} из {quiz.length}
             </h2>
             <Button className="mt-2" variant="secondary" onClick={() => setQuiz(null)}>

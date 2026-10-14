@@ -40,7 +40,7 @@ export function IeltsHub() {
         ))}
       </Card>
       <Card>
-        <h2 className="font-semibold">Пробный экзамен</h2>
+        <h2 className="text-lg font-semibold">Пробный экзамен</h2>
         <p className="text-sm text-ink-soft">Все четыре модуля с таймером, без подсказок. Общий балл рассчитывается, только если проверены все четыре компонента.</p>
         <Button className="mt-2" href="/exams">
           Открыть пробные экзамены
@@ -66,7 +66,7 @@ export function IeltsReading() {
     <div className="space-y-4">
       <PageHeader title="IELTS Reading" back="/ielts" subtitle="Academic: 3 текста, 40 вопросов, 60 минут" />
       <Card>
-        <h2 className="font-semibold">Стратегии</h2>
+        <h2 className="text-lg font-semibold">Стратегии</h2>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           {READING_STRATEGIES.map((s) => (
             <div key={s.t} className="rounded-xl bg-canvas p-3 text-sm">
@@ -80,7 +80,7 @@ export function IeltsReading() {
         <TestCard key={t.id} id={t.id} title={t.title} note={t.formatNote} count={questionCount(t)} minutes={t.minutes} />
       ))}
       <Card>
-        <h2 className="font-semibold">Форматы заданий в тесте</h2>
+        <h2 className="text-lg font-semibold">Форматы заданий в тесте</h2>
         <p className="mt-1 text-sm text-ink-soft">True/False/Not Given, Yes/No/Not Given, Matching Headings, Matching Information, Multiple Choice, Sentence Completion, Summary Completion, Short Answer Questions. Форматы Matching Features и Table Completion — в следующих версиях банка заданий.</p>
       </Card>
     </div>
@@ -93,7 +93,7 @@ function TestCard({ id, title, note, count, minutes }: { id: string; title: stri
   return (
     <Card>
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="font-semibold">{title}</h2>
+        <h2 className="text-lg font-semibold">{title}</h2>
         <Badge>{count} вопросов</Badge>
         <Badge>{minutes} мин</Badge>
       </div>
@@ -125,7 +125,7 @@ export function IeltsListening() {
     <div className="space-y-4">
       <PageHeader title="IELTS Listening" back="/ielts" subtitle="4 части, 40 вопросов, ≈ 30 минут" />
       <Card>
-        <h2 className="font-semibold">Как устроен Listening</h2>
+        <h2 className="text-lg font-semibold">Как устроен Listening</h2>
         <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm">
           <li>Part 1 — бытовой диалог (анкеты, бронирование): имена по буквам, числа, даты.</li>
           <li>Part 2 — монолог (экскурсия, объявление): выбор ответа, планы и карты.</li>
@@ -135,7 +135,7 @@ export function IeltsListening() {
         <p className="mt-2 text-sm">Запись звучит один раз. Перед каждой частью прочитайте вопросы и предскажите тип ответа (число, имя, существительное).</p>
       </Card>
       <Card>
-        <h2 className="font-semibold">Акценты</h2>
+        <h2 className="text-lg font-semibold">Акценты</h2>
         <p className="text-sm text-ink-soft">
           Голоса синтезатора на вашем устройстве: {accents.length ? accents.map((a) => ACCENT_NAMES[a]).join(', ') : 'только стандартный английский'}. Тренажёр не выдаёт один и тот же синтетический голос за разные акценты —
           ниже можно прослушать фразу каждым реально доступным голосом.
@@ -146,7 +146,7 @@ export function IeltsListening() {
         <TestCard key={t.id} id={t.id} title={t.title} note={t.formatNote} count={questionCount(t)} minutes={t.minutes} />
       ))}
       <Card>
-        <h2 className="font-semibold">Форматы заданий</h2>
+        <h2 className="text-lg font-semibold">Форматы заданий</h2>
         <p className="mt-1 text-sm text-ink-soft">В тесте: Form Completion, Multiple Choice, Map Labelling, Matching, Note Completion. Table/Sentence Completion, Diagram Labelling и Short Answer — в следующих версиях банка заданий.</p>
         <Button className="mt-2" variant="secondary" href="/dictation/en">
           Аудиодиктанты для разминки
@@ -211,7 +211,7 @@ export function IeltsWriting() {
     <div className="space-y-4">
       <PageHeader title="IELTS Writing" back="/ielts" subtitle="Task 2 весит в оценке Writing вдвое больше, чем Task 1" />
       <Card>
-        <h2 className="font-semibold">Критерии оценки</h2>
+        <h2 className="text-lg font-semibold">Критерии оценки</h2>
         <div className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
           <div className="rounded-xl bg-canvas p-3">
             <strong>Task Achievement / Task Response</strong> — полнота ответа на задание, обзор (Task 1), позиция (Task 2).
@@ -229,7 +229,7 @@ export function IeltsWriting() {
       </Card>
       {(['ielts1', 'ielts2'] as const).map((task) => (
         <Card key={task}>
-          <h2 className="font-semibold">{task === 'ielts1' ? 'Task 1: графики, таблицы, процессы' : 'Task 2: эссе'}</h2>
+          <h2 className="text-lg font-semibold">{task === 'ielts1' ? 'Task 1: графики, таблицы, процессы' : 'Task 2: эссе'}</h2>
           <div className="mt-2 space-y-1">
             {IELTS_WRITING.filter((w) => w.task === task).map((w) => (
               <button key={w.id} onClick={() => setId(w.id)} className="w-full rounded-lg px-2 py-2 text-left text-sm hover:bg-canvas">
@@ -292,7 +292,7 @@ function Part1() {
               setTopic(x.id);
               setQi(0);
             }}
-            className={cx('rounded-full border px-3 py-1 text-sm', x.id === topic ? 'border-brand bg-brand-soft' : 'border-line')}
+            className={cx('min-h-11 rounded-full border px-4 text-sm font-medium', x.id === topic ? 'border-brand bg-brand-soft' : 'border-line')}
           >
             {x.topic}
           </button>
@@ -323,7 +323,7 @@ function Part2() {
     <div className="space-y-4">
       <div className="flex flex-wrap gap-1.5">
         {IELTS_CUE_CARDS.map((x) => (
-          <button key={x.id} onClick={() => setId(x.id)} className={cx('rounded-full border px-3 py-1 text-sm', x.id === id ? 'border-brand bg-brand-soft' : 'border-line')}>
+          <button key={x.id} onClick={() => setId(x.id)} className={cx('min-h-11 rounded-full border px-4 text-sm font-medium', x.id === id ? 'border-brand bg-brand-soft' : 'border-line')}>
             {x.title.replace('Describe ', '')}
           </button>
         ))}
@@ -342,7 +342,7 @@ function Part2() {
         <SpeakRecorder key={id} lang="en" context="IELTS Part 2" prompt={c.title} prepSeconds={60} targetSeconds={120} />
       </Card>
       <Card>
-        <h3 className="font-semibold">Part 3: обсуждение</h3>
+        <h3 className="text-[17px] font-semibold">Part 3: обсуждение</h3>
         <div className="mt-2 space-y-3">
           {c.part3.map((q) => (
             <details key={q} className="rounded-xl border border-line p-3">
@@ -372,7 +372,7 @@ function SpeakingMock() {
   if (step < 0)
     return (
       <Card>
-        <h2 className="font-semibold">Полный пробный Speaking (11–14 минут)</h2>
+        <h2 className="text-lg font-semibold">Полный пробный Speaking (11–14 минут)</h2>
         <p className="mt-1 text-sm">Part 1: 4 вопроса · Part 2: карточка (1 мин подготовки, до 2 мин речи) · Part 3: 4 вопроса. Вопросы озвучивает виртуальный экзаменатор (синтезатор речи), ответы записываются.</p>
         <Notice tone="warn">Без AI ответы сохраняются с транскрипцией и показателями беглости; балл Speaking не выставляется. Произношение по транскрипции не оценивается.</Notice>
         <Button className="mt-3" icon="play" onClick={() => setStep(0)}>
@@ -383,7 +383,7 @@ function SpeakingMock() {
   if (step >= plan.length)
     return (
       <Card tone="good">
-        <h2 className="font-semibold">Пробный Speaking завершён</h2>
+        <h2 className="text-lg font-semibold">Пробный Speaking завершён</h2>
         <p className="mt-1 text-sm">Ответы сохранены в статистике. Прослушайте свои записи и проанализируйте их с AI (если подключён). Оценку преподавателя можно ввести на странице «Пробные экзамены».</p>
         <Button className="mt-2" href="/exams">
           К пробным экзаменам
