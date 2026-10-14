@@ -28,7 +28,7 @@ export function Card({ children, className = '', tone, as = 'section' }: { child
   return <Tag className={cx('rounded-card border bg-surface p-5 shadow-card sm:p-6', toneCls, className)}>{children}</Tag>;
 }
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'kk' | 'good' | 'quiet';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'kk' | 'good' | 'quiet' | 'ink';
 
 export function Button({
   children,
@@ -60,6 +60,7 @@ export function Button({
   const v: Record<Variant, string> = {
     primary: 'bg-brand text-white shadow-sm hover:bg-brand-ink',
     kk: 'bg-kk text-white shadow-sm hover:bg-kk-ink',
+    ink: 'bg-ink text-white shadow-sm hover:bg-ink/90',
     good: 'bg-good text-white shadow-sm hover:brightness-95',
     secondary: 'bg-surface text-ink border border-line-strong hover:bg-subtle',
     quiet: 'bg-subtle text-ink hover:bg-line',

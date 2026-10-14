@@ -11,7 +11,8 @@ import { navigate } from '../lib/router';
 import { useStudyTimer } from '../lib/hooks';
 import { voiceInfo } from '../lib/speech';
 import { SpeakButton } from '../components/Audio';
-import { Badge, Button, Card, Empty, Field, Modal, Notice, PageHeader, Progress, Stat, Tabs, cx, inputCls } from '../components/ui';
+import { ActionBar, Badge, Button, Card, Empty, Field, LangTag, Modal, Notice, OptionButton, PageHeader, Progress, SectionTitle, Tabs, cx, inputCls } from '../components/ui';
+import { Icon } from '../components/icons';
 import { formatDate, toISODate } from '../lib/dates';
 
 const STATUS_NAMES = { new: 'новое', learning: 'изучается', due: 'к повтору', mastered: 'освоено' } as const;
@@ -33,35 +34,44 @@ export function VocabPage() {
   const cats = vocabCategories(lang);
 
   return (
-    <div className="space-y-4">
-      <PageHeader title="Персональный словарь" subtitle="Интервальное повторение по алгоритму FSRS: дата следующего повтора рассчитывается автоматически" />
+    <div className="space-y-6">
+      <PageHeader title="Словарь" subtitle="Интервальное повторение по алгоритму FSRS: дата следующего повтора рассчитывается автоматически" />
       <Tabs value={lang} onChange={setLang} items={[{ value: 'en', label: 'Английский' }, { value: 'kk', label: 'Казахский' }]} />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Новые" value={vs.new} />
-        <Stat label="Изучаемые" value={vs.learning} />
-        <Stat label="К повтору" value={vs.due} />
-        <Stat label="Освоены" value={vs.mastered} hint="стабильность ≥ 21 дня" />
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Button icon="play" variant={lang === 'kk' ? 'kk' : 'primary'} onClick={() => navigate(`/vocab/review/${lang}`)} disabled={!vs.total}>
-          Учить и повторять ({vs.due + Math.min(vs.new, NEW_PER_SESSION)})
-        </Button>
-        <Button variant="secondary" icon="plus" onClick={() => setAdding(true)}>
-          Своё слово
-        </Button>
-      </div>
+      <Card tone={lang === 'kk' ? 'kk' : 'en'}>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-4">
+          {[
+            ['Новые', vs.new, null],
+            ['Изучаемые', vs.learning, null],
+            ['К повтору', vs.due, null],
+            ['Освоены', vs.mastered, 'стабильность ≥ 21 дня'],
+          ].map(([l, v, h]) => (
+            <div key={l as string}>
+              <div className="text-sm text-ink-soft">{l}</div>
+              <div className="mt-0.5 text-2xl font-semibold tabular-nums">{v}</div>
+              {h && <div className="text-sm text-ink-soft">{h}</div>}
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+          <Button size="lg" icon="play" variant={lang === 'kk' ? 'kk' : 'primary'} onClick={() => navigate(`/vocab/review/${lang}`)} disabled={!vs.total}>
+            Учить и повторять ({vs.due + Math.min(vs.new, NEW_PER_SESSION)})
+          </Button>
+          <Button size="lg" variant="secondary" icon="plus" onClick={() => setAdding(true)}>
+            Своё слово
+          </Button>
+        </div>
+      </Card>
 
       <Card>
-        <h2 className="font-semibold">Тематические модули</h2>
-        <p className="text-sm text-ink-soft">Добавьте тему целиком — слова появятся как «новые» и будут вводиться порциями по {NEW_PER_SESSION}.</p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <SectionTitle sub={`Добавьте тему целиком — слова появятся как «новые» и будут вводиться порциями по ${NEW_PER_SESSION}.`}>Тематические модули</SectionTitle>
+        <div className="grid gap-2 sm:grid-cols-2">
           {cats.map((c) => {
             const seeds = VOCAB_SEEDS[lang].filter((v) => v.cat === c);
             const inDeck = seeds.filter((v) => s.vocab[v.id]).length;
             return (
-              <button key={c} onClick={() => navigate(`/vocab/topic/${lang}/${encodeURIComponent(c)}`)} className="flex items-center justify-between rounded-xl border border-line px-3 py-2.5 text-left hover:bg-canvas">
-                <span className="font-medium">{c}</span>
-                <span className="text-sm text-ink-soft">
+              <button key={c} onClick={() => navigate(`/vocab/topic/${lang}/${encodeURIComponent(c)}`)} className="flex min-h-13 items-center justify-between gap-3 rounded-xl border border-line px-4 py-3 text-left hover:bg-subtle">
+                <span className="min-w-0 font-medium">{c}</span>
+                <span className={cx('shrink-0 text-sm tabular-nums', inDeck === seeds.length ? 'font-medium text-good' : 'text-ink-soft')}>
                   {inDeck}/{seeds.length}
                 </span>
               </button>
@@ -72,12 +82,12 @@ export function VocabPage() {
 
       <Card>
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="mr-auto font-semibold">Мои слова ({words.length})</h2>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Поиск" className={cx(inputCls, 'max-w-48 min-h-9')} />
+          <h2 className="mr-auto text-xl font-semibold">Мои слова ({words.length})</h2>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Поиск" aria-label="Поиск по словарю" className={cx(inputCls, 'w-full sm:max-w-56')} />
         </div>
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap gap-2">
           {(['all', 'new', 'learning', 'due', 'mastered'] as const).map((f) => (
-            <button key={f} onClick={() => setFilter(f)} className={cx('rounded-full border px-3 py-1 text-sm', filter === f ? 'border-brand bg-brand-soft text-brand-ink' : 'border-line text-ink-soft')}>
+            <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f} className={cx('min-h-11 rounded-full border px-4 text-sm font-medium', filter === f ? 'border-brand bg-brand-soft text-brand-ink' : 'border-line text-ink-soft hover:text-ink')}>
               {f === 'all' ? 'все' : STATUS_NAMES[f]}
             </button>
           ))}
@@ -103,9 +113,9 @@ function WordRow({ w }: { w: VocabEntry }) {
   const st = wordStatus(w.card);
   const [open, setOpen] = useState(false);
   return (
-    <li className="py-2.5">
+    <li className="py-1">
       <div className="flex items-center gap-2">
-        <button className="min-w-0 flex-1 text-left" onClick={() => setOpen((o) => !o)}>
+        <button className="min-h-12 min-w-0 flex-1 py-2 text-left" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
           <span className="font-medium" lang={w.lang}>
             {w.word}
           </span>{' '}
@@ -114,17 +124,17 @@ function WordRow({ w }: { w: VocabEntry }) {
         <Badge tone={st === 'mastered' ? 'good' : st === 'due' ? 'warn' : st === 'learning' ? 'brand' : 'neutral'}>{STATUS_NAMES[st]}</Badge>
       </div>
       {open && (
-        <div className="mt-2 rounded-xl bg-canvas p-3 text-sm">
+        <div className="mb-2 rounded-xl bg-subtle p-4 text-[15px]">
           {w.pron && <div className="text-ink-soft">Произношение: {w.pron}</div>}
           <div className="mt-1" lang={w.lang}>
             {w.ex}
           </div>
           <div className="text-ink-soft">{w.exRu}</div>
-          <div className="mt-1 text-xs text-ink-faint">
+          <div className="mt-2 text-sm text-ink-soft">
             {w.cat} · {w.level} · повторений: {w.card.reps}, ошибок: {w.card.lapses}
             {w.card.state !== 'new' && ` · следующий повтор: ${formatDate(toISODate(new Date(w.card.due)))}`}
           </div>
-          <div className="mt-2 flex gap-2">
+          <div className="mt-3 flex gap-2">
             <SpeakButton text={w.word} lang={w.lang} compact allowReveal={false} />
             <Button size="sm" variant="danger" icon="trash" onClick={() => removeVocab(w.id)}>
               Удалить
@@ -175,21 +185,21 @@ export function VocabTopicPage({ lang, cat }: { lang: Lang; cat: string }) {
   const seeds = VOCAB_SEEDS[lang].filter((v) => v.cat === cat);
   const missing = seeds.filter((v) => !s.vocab[v.id]);
   return (
-    <div className="space-y-4">
-      <PageHeader title={`Тема: ${cat}`} back="/vocab" subtitle={lang === 'en' ? 'Английский' : 'Казахский'} />
+    <div className="space-y-6">
+      <PageHeader eyebrow={<LangTag lang={lang} long />} title={`Тема: ${cat}`} back="/vocab" />
       <Card>
         <ul className="divide-y divide-line">
           {seeds.map((w) => (
-            <li key={w.id} className="flex items-start gap-3 py-2.5">
+            <li key={w.id} className="flex items-start gap-3 py-3.5">
               <SpeakButton text={w.word} lang={lang} compact allowReveal={false} />
               <div className="min-w-0 flex-1">
                 <div>
                   <span className="font-medium" lang={lang}>
                     {w.word}
                   </span>{' '}
-                  <span className="text-ink-soft">— {w.tr}</span> {w.pron && <span className="text-xs text-ink-faint">{w.pron}</span>}
+                  <span className="text-ink-soft">— {w.tr}</span> {w.pron && <span className="text-sm text-ink-faint">{w.pron}</span>}
                 </div>
-                <div className="text-sm" lang={lang}>
+                <div className="mt-1 text-[15px]" lang={lang}>
                   {w.ex}
                 </div>
                 <div className="text-sm text-ink-soft">{w.exRu}</div>
@@ -198,8 +208,9 @@ export function VocabTopicPage({ lang, cat }: { lang: Lang; cat: string }) {
             </li>
           ))}
         </ul>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-2">
           <Button
+            variant={lang === 'kk' ? 'kk' : 'primary'}
             disabled={!missing.length}
             onClick={() => {
               addVocab(missing, `Тема: ${cat}`);
@@ -262,27 +273,41 @@ export function VocabReview({ lang }: { lang: Lang }) {
     if (finished && done.length) markBlockDone('vocab', lang);
   }, [finished, done.length, lang]);
 
+  const isKk = lang === 'kk';
+  const header = (
+    <div className="flex items-center justify-between gap-3">
+      <button onClick={() => navigate('/vocab')} className="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-xl px-2 text-sm font-medium text-ink-soft hover:bg-surface hover:text-ink">
+        <Icon name="x" size={18} />
+        Закончить
+      </button>
+      <LangTag lang={lang} long />
+    </div>
+  );
+
   if (!current) {
     const ok = done.filter((d) => d.ok).length;
     return (
-      <div className="space-y-4">
-        <PageHeader title="Повторение слов" back="/vocab" />
+      <div className="mx-auto max-w-2xl space-y-5">
+        {header}
+        <h1 className="text-[28px] font-semibold tracking-tight">Повторение слов</h1>
         <Card>
           {done.length ? (
             <>
-              <h2 className="text-lg font-semibold">Сессия завершена</h2>
-              <p className="mt-1">
+              <h2 className="text-xl font-semibold">Сессия завершена</h2>
+              <p className="mt-2">
                 Ответов: {done.length}, верных: {ok}. Следующие повторы запланированы автоматически.
               </p>
             </>
           ) : (
             <Empty title="Сейчас нечего повторять">Добавьте слова из тематических модулей или уроков — новые слова вводятся порциями по {NEW_PER_SESSION}.</Empty>
           )}
-          <div className="mt-3 flex gap-2">
+          <div className="mt-5 flex flex-wrap gap-2">
             <Button href="/vocab" variant="secondary">
               К словарю
             </Button>
-            <Button href="/today">К плану</Button>
+            <Button href="/today" variant={isKk ? 'kk' : 'primary'}>
+              К плану
+            </Button>
           </div>
         </Card>
       </div>
@@ -290,11 +315,41 @@ export function VocabReview({ lang }: { lang: Lang }) {
   }
 
   const mode = modeFor(current, canListen);
+  const total = done.length + queue.length;
   return (
-    <div className="space-y-4">
-      <PageHeader title="Повторение слов" back="/vocab" subtitle={`Осталось карточек: ${queue.length} · выполнено: ${done.length}`} />
-      <Progress value={(done.length / Math.max(1, done.length + queue.length)) * 100} tone={lang === 'kk' ? 'kk' : 'brand'} />
-      <VocabCard key={current.id + current.card.reps + done.length} w={current} mode={mode} lang={lang} onGrade={grade} />
+    <div className="mx-auto max-w-2xl">
+      {header}
+      <div className="mt-3 flex items-center gap-3">
+        <span className="shrink-0 text-sm font-semibold tabular-nums">
+          {done.length + 1} из {total}
+        </span>
+        <Progress value={(done.length / Math.max(1, total)) * 100} tone={isKk ? 'kk' : 'brand'} label="Прогресс сессии" />
+      </div>
+      <p className="mt-1.5 text-sm text-ink-soft">
+        Повторение слов · осталось карточек: {queue.length}
+      </p>
+      <div className="mt-5">
+        <VocabCard key={current.id + current.card.reps + done.length} w={current} mode={mode} lang={lang} onGrade={grade} />
+      </div>
+    </div>
+  );
+}
+
+const MODE_NAMES: Record<Mode, string> = { intro: 'Новое слово', choose: 'Выбор перевода', recall: 'Вспомните перевод', write: 'Напишите по памяти', listen: 'Распознавание на слух', sentence: 'Слово в предложении' };
+
+/** Крупное слово с транскрипцией и кнопкой прослушивания. */
+function BigWord({ w, lang, audio = true }: { w: VocabEntry; lang: Lang; audio?: boolean }) {
+  return (
+    <div className="text-center">
+      <div className="text-[34px] leading-tight font-semibold tracking-tight break-words sm:text-[40px]" lang={lang}>
+        {w.word}
+      </div>
+      {w.pron && <div className="mt-1 text-ink-soft">{w.pron}</div>}
+      {audio && (
+        <div className="mt-4 flex justify-center">
+          <SpeakButton text={w.word} lang={lang} label="Прослушать" allowReveal={false} />
+        </div>
+      )}
     </div>
   );
 }
@@ -326,204 +381,213 @@ function VocabCard({ w, mode, lang, onGrade }: { w: VocabEntry; mode: Mode; lang
     setChecked({ ok: m.result !== 'wrong', typo: m.result === 'typo' });
   };
 
+  const isKk = lang === 'kk';
+  const accent = isKk ? 'kk' : 'primary';
   const footer = checked && (
-    <div className="mt-4 space-y-3">
-      <div className={cx('rounded-xl px-3 py-2.5 text-sm', checked.ok ? 'bg-good-soft' : 'bg-bad-soft')}>
-        <div className="font-semibold">{checked.ok ? (checked.typo ? 'Верно, с опечаткой' : 'Верно!') : 'Неверно'}</div>
-        <div>
-          <span className="font-medium" lang={lang}>
+    <>
+      <div className={cx('mt-6 rounded-2xl border p-4', checked.ok ? 'border-good/25 bg-good-soft' : 'border-bad/25 bg-bad-soft')} aria-live="polite">
+        <div className={cx('flex items-center gap-2 font-semibold', checked.ok ? 'text-good' : 'text-bad')}>
+          <Icon name={checked.ok ? 'check' : 'x'} size={18} strokeWidth={2.5} />
+          {checked.ok ? (checked.typo ? 'Верно, с опечаткой' : 'Верно!') : 'Неверно'}
+        </div>
+        <div className="mt-1.5 text-[17px]">
+          <span className="font-semibold" lang={lang}>
             {w.word}
           </span>{' '}
           — {w.tr}
         </div>
         {w.ex && (
-          <div className="mt-1 text-ink-soft">
+          <div className="mt-1.5 text-ink-soft">
             <span lang={lang}>{w.ex}</span> — {w.exRu}
           </div>
         )}
       </div>
-      <div className="flex justify-end">
-        <Button onClick={() => onGrade(gradeFromResult(checked.ok, checked.typo, false), mode)}>Далее</Button>
-      </div>
-    </div>
+      <ActionBar>
+        <Button size="lg" variant={accent} iconRight="chevronRight" onClick={() => onGrade(gradeFromResult(checked.ok, checked.typo, false), mode)}>
+          Далее
+        </Button>
+      </ActionBar>
+    </>
   );
 
+  const textInput = (placeholder: string) => (
+    <input
+      className={cx(inputCls, 'mt-5 min-h-14 text-center text-[19px]', checked && (checked.ok ? 'border-good' : 'border-bad'))}
+      value={value}
+      disabled={!!checked}
+      onChange={(e) => setValue(e.target.value)}
+      onKeyDown={(e) => e.key === 'Enter' && value.trim() && check([w.word])}
+      placeholder={placeholder}
+      autoCapitalize="off"
+      autoCorrect="off"
+      spellCheck={false}
+      lang={lang}
+      aria-label="Ответ"
+    />
+  );
+  const checkBar = !checked && (
+    <ActionBar>
+      <Button size="lg" variant={accent} disabled={!value.trim()} onClick={() => check([w.word])}>
+        Проверить
+      </Button>
+    </ActionBar>
+  );
+
+  const gradeBtn = 'flex min-h-16 flex-col items-center justify-center rounded-2xl border-2 px-2 py-2 text-center font-semibold transition-colors';
+
   return (
-    <Card>
-      <div className="mb-2 flex items-center justify-between text-xs text-ink-soft">
-        <span>{w.cat}</span>
-        <span>
-          {mode === 'intro' ? 'Новое слово' : mode === 'choose' ? 'Выбор перевода' : mode === 'recall' ? 'Вспомните перевод' : mode === 'write' ? 'Напишите по памяти' : mode === 'listen' ? 'Распознавание на слух' : 'Слово в предложении'}
-        </span>
+    <div>
+      <div className={cx('rounded-card border border-line border-t-[3px] bg-surface p-6 shadow-card sm:p-8', isKk ? 'border-t-kk' : 'border-t-brand')}>
+        <div className="mb-6 flex items-center justify-between gap-3 text-sm">
+          <span className="text-ink-soft">{w.cat}</span>
+          <Badge tone={isKk ? 'kk' : 'brand'}>{MODE_NAMES[mode]}</Badge>
+        </div>
+
+        {mode === 'intro' && (
+          <div>
+            <BigWord w={w} lang={lang} />
+            <div className="mt-5 text-center text-xl">{w.tr}</div>
+            {w.ex && (
+              <div className="mt-5 rounded-2xl bg-subtle p-4">
+                <div className="text-[17px]" lang={lang}>
+                  {w.ex}
+                </div>
+                <div className="mt-1 text-ink-soft">{w.exRu}</div>
+              </div>
+            )}
+            <p className="mt-4 text-sm text-ink-soft">Прочитайте, послушайте и произнесите слово вслух. Через несколько минут оно появится в упражнении.</p>
+          </div>
+        )}
+
+        {mode === 'choose' && (
+          <div>
+            <BigWord w={w} lang={lang} />
+            <div className="mt-6 grid gap-2.5">
+              {options.map((o, i) => (
+                <OptionButton
+                  key={i}
+                  letter={String.fromCharCode(65 + i)}
+                  selected={picked === i}
+                  state={checked ? (o === w.tr ? 'right' : picked === i ? 'wrong' : 'dim') : undefined}
+                  disabled={!!checked}
+                  onClick={() => {
+                    setPicked(i);
+                    setChecked({ ok: o === w.tr, typo: false });
+                  }}
+                >
+                  {o}
+                </OptionButton>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {mode === 'recall' && (
+          <div>
+            <BigWord w={w} lang={lang} />
+            {revealed && (
+              <div className="mt-6 border-t border-line pt-5 text-center">
+                <div className="text-xl font-medium">{w.tr}</div>
+                {w.ex && (
+                  <div className="mt-2 text-ink-soft">
+                    <span lang={lang}>{w.ex}</span> — {w.exRu}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {(mode === 'write' || mode === 'listen') && (
+          <div>
+            {mode === 'write' ? (
+              <div className="text-center">
+                <div className="text-sm text-ink-soft">Напишите {isKk ? 'по-казахски' : 'по-английски'}</div>
+                <div className="mt-1 text-[28px] leading-tight font-semibold">{w.tr}</div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center">
+                <SpeakButton text={w.word} lang={lang} />
+                <div className="mt-2 text-sm text-ink-soft">Запишите услышанное слово</div>
+              </div>
+            )}
+            {textInput(isKk ? 'по-казахски' : 'по-английски')}
+          </div>
+        )}
+
+        {mode === 'sentence' && (
+          <div>
+            {sentence ? (
+              <>
+                <div className="text-center text-xl leading-snug" lang={lang}>
+                  {sentence}
+                </div>
+                <div className="mt-2 text-center text-ink-soft">{w.exRu}</div>
+                {textInput('Вставьте слово')}
+              </>
+            ) : (
+              <>
+                <BigWord w={w} lang={lang} audio={false} />
+                <p className="mt-4 text-ink-soft">Составьте своё предложение с этим словом (вслух или письменно), затем оцените себя.</p>
+                <textarea className="mt-3 mb-3 w-full rounded-xl border border-line-strong p-3.5 outline-none focus:border-brand" rows={2} value={value} onChange={(e) => setValue(e.target.value)} lang={lang} aria-label="Ваше предложение" />
+                <Notice tone="info">Самостоятельно составленные предложения автоматически не проверяются. Для проверки используйте AI-преподавателя.</Notice>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
+      {footer}
+
       {mode === 'intro' && (
-        <div>
-          <div className="text-2xl font-semibold" lang={lang}>
-            {w.word}
-          </div>
-          {w.pron && <div className="text-ink-soft">{w.pron}</div>}
-          <div className="mt-1 text-lg">{w.tr}</div>
-          <div className="mt-3 rounded-xl bg-canvas p-3">
-            <div lang={lang}>{w.ex}</div>
-            <div className="text-sm text-ink-soft">{w.exRu}</div>
-          </div>
-          <div className="mt-3">
-            <SpeakButton text={w.word} lang={lang} compact allowReveal={false} />
-          </div>
-          <p className="mt-3 text-sm text-ink-soft">Прочитайте, послушайте и произнесите слово вслух. Через несколько минут оно появится в упражнении.</p>
-          <div className="mt-3 flex justify-end">
-            <Button onClick={() => onGrade(3, 'intro')}>Запомнил(а), дальше</Button>
+        <ActionBar>
+          <Button size="lg" variant={accent} onClick={() => onGrade(3, 'intro')}>
+            Запомнил(а), дальше
+          </Button>
+        </ActionBar>
+      )}
+      {mode === 'recall' && !revealed && (
+        <ActionBar>
+          <Button size="lg" variant={accent} icon="eye" onClick={() => setRevealed(true)}>
+            Показать перевод
+          </Button>
+        </ActionBar>
+      )}
+      {mode === 'recall' && revealed && (
+        <div className="action-bar -mx-4 mt-6 border-t border-line bg-canvas/95 px-4 pt-3 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10">
+          <div className="mb-2 text-center text-sm text-ink-soft">Насколько легко вы вспомнили?</div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <button className={cx(gradeBtn, 'border-bad/40 bg-surface text-bad hover:bg-bad-soft')} onClick={() => onGrade(1, 'recall')}>
+              Не вспомнил
+            </button>
+            <button className={cx(gradeBtn, 'border-warn/40 bg-surface text-warn hover:bg-warn-soft')} onClick={() => onGrade(2, 'recall')}>
+              Трудно
+            </button>
+            <button className={cx(gradeBtn, 'border-line-strong bg-surface text-ink hover:bg-subtle')} onClick={() => onGrade(3, 'recall')}>
+              Хорошо
+            </button>
+            <button className={cx(gradeBtn, 'border-good/40 bg-surface text-good hover:bg-good-soft')} onClick={() => onGrade(4, 'recall')}>
+              Легко
+            </button>
           </div>
         </div>
       )}
-
-      {mode === 'choose' && (
-        <div>
-          <div className="text-2xl font-semibold" lang={lang}>
-            {w.word}
+      {(mode === 'write' || mode === 'listen' || (mode === 'sentence' && sentence)) && checkBar}
+      {mode === 'sentence' && !sentence && (
+        <div className="action-bar -mx-4 mt-6 border-t border-line bg-canvas/95 px-4 pt-3 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10">
+          <div className="grid grid-cols-3 gap-2">
+            <button className={cx(gradeBtn, 'border-bad/40 bg-surface text-bad hover:bg-bad-soft')} onClick={() => onGrade(1, 'sentence')}>
+              Не получилось
+            </button>
+            <button className={cx(gradeBtn, 'border-line-strong bg-surface text-ink hover:bg-subtle')} onClick={() => onGrade(2, 'sentence')}>
+              С трудом
+            </button>
+            <button className={cx(gradeBtn, 'border-good/40 bg-surface text-good hover:bg-good-soft')} onClick={() => onGrade(3, 'sentence')}>
+              Получилось
+            </button>
           </div>
-          <div className="mt-3 grid gap-2">
-            {options.map((o, i) => (
-              <button
-                key={i}
-                disabled={!!checked}
-                onClick={() => {
-                  setPicked(i);
-                  setChecked({ ok: o === w.tr, typo: false });
-                }}
-                className={cx('min-h-12 rounded-xl border px-4 text-left', checked && o === w.tr ? 'border-good bg-good-soft' : checked && picked === i ? 'border-bad bg-bad-soft' : 'border-line hover:bg-canvas')}
-              >
-                {o}
-              </button>
-            ))}
-          </div>
-          {footer}
         </div>
       )}
-
-      {mode === 'recall' && (
-        <div>
-          <div className="text-2xl font-semibold" lang={lang}>
-            {w.word}
-          </div>
-          {!revealed ? (
-            <div className="mt-4 flex justify-end">
-              <Button onClick={() => setRevealed(true)}>Показать перевод</Button>
-            </div>
-          ) : (
-            <div className="mt-3">
-              <div className="text-lg">{w.tr}</div>
-              {w.ex && (
-                <div className="mt-2 text-sm text-ink-soft">
-                  <span lang={lang}>{w.ex}</span> — {w.exRu}
-                </div>
-              )}
-              <div className="mt-4 text-sm text-ink-soft">Насколько легко вы вспомнили?</div>
-              <div className="mt-2 grid grid-cols-4 gap-2">
-                <Button variant="danger" size="sm" onClick={() => onGrade(1, 'recall')}>
-                  Не вспомнил
-                </Button>
-                <Button variant="secondary" size="sm" onClick={() => onGrade(2, 'recall')}>
-                  Трудно
-                </Button>
-                <Button variant="secondary" size="sm" onClick={() => onGrade(3, 'recall')}>
-                  Хорошо
-                </Button>
-                <Button variant="good" size="sm" onClick={() => onGrade(4, 'recall')}>
-                  Легко
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {(mode === 'write' || mode === 'listen') && (
-        <div>
-          {mode === 'write' ? (
-            <div className="text-xl font-semibold">{w.tr}</div>
-          ) : (
-            <div>
-              <SpeakButton text={w.word} lang={lang} />
-              <div className="mt-2 text-sm text-ink-soft">Запишите услышанное слово</div>
-            </div>
-          )}
-          <input
-            className={cx(inputCls, 'mt-3', checked && (checked.ok ? 'border-good' : 'border-bad'))}
-            value={value}
-            disabled={!!checked}
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && value.trim() && check([w.word])}
-            placeholder={lang === 'en' ? 'по-английски' : 'по-казахски'}
-            autoCapitalize="off"
-            autoCorrect="off"
-            spellCheck={false}
-            lang={lang}
-          />
-          {!checked && (
-            <div className="mt-3 flex justify-end">
-              <Button disabled={!value.trim()} onClick={() => check([w.word])}>
-                Проверить
-              </Button>
-            </div>
-          )}
-          {footer}
-        </div>
-      )}
-
-      {mode === 'sentence' && (
-        <div>
-          {sentence ? (
-            <>
-              <div className="text-lg" lang={lang}>
-                {sentence}
-              </div>
-              <div className="text-sm text-ink-soft">{w.exRu}</div>
-              <input
-                className={cx(inputCls, 'mt-3', checked && (checked.ok ? 'border-good' : 'border-bad'))}
-                value={value}
-                disabled={!!checked}
-                onChange={(e) => setValue(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && value.trim() && check([w.word])}
-                placeholder="Вставьте слово"
-                autoCapitalize="off"
-                autoCorrect="off"
-                spellCheck={false}
-                lang={lang}
-              />
-              {!checked && (
-                <div className="mt-3 flex justify-end">
-                  <Button disabled={!value.trim()} onClick={() => check([w.word])}>
-                    Проверить
-                  </Button>
-                </div>
-              )}
-              {footer}
-            </>
-          ) : (
-            <>
-              <div className="text-xl font-semibold" lang={lang}>
-                {w.word}
-              </div>
-              <p className="mt-2 text-sm text-ink-soft">Составьте своё предложение с этим словом (вслух или письменно), затем оцените себя.</p>
-              <textarea className="mt-2 w-full rounded-xl border border-line p-3" rows={2} value={value} onChange={(e) => setValue(e.target.value)} lang={lang} />
-              <Notice tone="info">Самостоятельно составленные предложения автоматически не проверяются. Для проверки используйте AI-преподавателя.</Notice>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <Button variant="danger" size="sm" onClick={() => onGrade(1, 'sentence')}>
-                  Не получилось
-                </Button>
-                <Button variant="secondary" size="sm" onClick={() => onGrade(2, 'sentence')}>
-                  С трудом
-                </Button>
-                <Button variant="good" size="sm" onClick={() => onGrade(3, 'sentence')}>
-                  Получилось
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-    </Card>
+    </div>
   );
 }

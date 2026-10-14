@@ -24,8 +24,8 @@ export function ExamRun({ testId, mode }: { testId: string; mode: 'exam' | 'trai
     );
   const back = t.exam === 'ielts' ? `/ielts/${t.section}` : `/kaztest/${t.section}`;
   return (
-    <div className="space-y-3">
-      <PageHeader title={t.title} back={back} subtitle={mode === 'exam' ? 'Экзаменационный режим' : 'Учебный режим'} />
+    <div className="space-y-4">
+      <PageHeader eyebrow={<span className="text-sm font-medium text-ink-soft">{t.exam === 'ielts' ? 'IELTS Academic' : 'КАЗТЕСТ'} · {mode === 'exam' ? 'Экзаменационный режим' : 'Учебный режим'}</span>} title={t.title} back={back} />
       <ExamRunner test={t} mode={mode} onExit={() => navigate(back)} />
     </div>
   );
