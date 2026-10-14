@@ -23,6 +23,7 @@ import { TutorPage } from './pages/Tutor';
 import { ConversationPage } from './pages/Conversation';
 import { MedicalPage } from './pages/Medical';
 import { EmergencyPage } from './pages/Emergency';
+import { CoursesPage, ExamCenterPage } from './pages/Hubs';
 import type { Lang } from './data/types';
 
 const asLang = (x?: string): Lang => (x === 'kk' ? 'kk' : 'en');
@@ -35,6 +36,10 @@ function Routes() {
       return <Home />;
     case 'onboarding':
       return <Onboarding />;
+    case 'courses':
+      return <CoursesPage />;
+    case 'exam-center':
+      return <ExamCenterPage />;
     case 'today':
       return <TodayPage />;
     case 'en':

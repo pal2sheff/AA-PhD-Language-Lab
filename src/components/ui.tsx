@@ -7,25 +7,28 @@ export function cx(...c: (string | false | null | undefined)[]) {
   return c.filter(Boolean).join(' ');
 }
 
-export function Card({ children, className = '', tone }: { children: ReactNode; className?: string; tone?: 'en' | 'kk' | 'warn' | 'good' | 'bad' | 'brand' }) {
+export type Tone = 'en' | 'kk' | 'warn' | 'good' | 'bad' | 'brand';
+
+export function Card({ children, className = '', tone, as = 'section' }: { children: ReactNode; className?: string; tone?: Tone; as?: 'section' | 'div' | 'article' }) {
   const toneCls =
     tone === 'en'
-      ? 'border-brand/20'
+      ? 'border-line border-t-brand border-t-[3px]'
       : tone === 'kk'
-        ? 'border-kk/25'
+        ? 'border-line border-t-kk border-t-[3px]'
         : tone === 'warn'
-          ? 'border-warn/30 bg-warn-soft'
+          ? 'border-warn/25 bg-warn-soft'
           : tone === 'good'
-            ? 'border-good/30 bg-good-soft'
+            ? 'border-good/25 bg-good-soft'
             : tone === 'bad'
-              ? 'border-bad/30 bg-bad-soft'
+              ? 'border-bad/25 bg-bad-soft'
               : tone === 'brand'
-                ? 'border-brand/25 bg-brand-soft'
+                ? 'border-brand/20 bg-brand-soft'
                 : 'border-line';
-  return <section className={cx('rounded-2xl border bg-surface p-4 sm:p-5', toneCls, className)}>{children}</section>;
+  const Tag = as;
+  return <Tag className={cx('rounded-card border bg-surface p-5 shadow-card sm:p-6', toneCls, className)}>{children}</Tag>;
 }
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'kk' | 'good';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'kk' | 'good' | 'quiet';
 
 export function Button({
   children,
@@ -34,10 +37,12 @@ export function Button({
   disabled,
   className = '',
   icon,
+  iconRight,
   type = 'button',
   size = 'md',
   href,
   title,
+  ariaLabel,
 }: {
   children?: ReactNode;
   onClick?: () => void;
@@ -45,102 +50,144 @@ export function Button({
   disabled?: boolean;
   className?: string;
   icon?: IconName;
+  iconRight?: IconName;
   type?: 'button' | 'submit';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   href?: string;
   title?: string;
+  ariaLabel?: string;
 }) {
   const v: Record<Variant, string> = {
-    primary: 'bg-brand text-white hover:bg-brand-ink',
-    kk: 'bg-kk text-white hover:opacity-90',
-    good: 'bg-good text-white hover:opacity-90',
-    secondary: 'bg-surface text-ink border border-line hover:bg-canvas',
+    primary: 'bg-brand text-white shadow-sm hover:bg-brand-ink',
+    kk: 'bg-kk text-white shadow-sm hover:bg-kk-ink',
+    good: 'bg-good text-white shadow-sm hover:brightness-95',
+    secondary: 'bg-surface text-ink border border-line-strong hover:bg-subtle',
+    quiet: 'bg-subtle text-ink hover:bg-line',
     ghost: 'text-brand hover:bg-brand-soft',
     danger: 'bg-surface text-bad border border-bad/40 hover:bg-bad-soft',
   };
-  const s = size === 'sm' ? 'min-h-9 px-3 text-sm' : size === 'lg' ? 'min-h-13 px-5 text-base' : 'min-h-11 px-4 text-[15px]';
+  const s =
+    size === 'sm'
+      ? 'min-h-11 px-3.5 text-sm rounded-xl'
+      : size === 'lg'
+        ? 'min-h-[52px] px-6 text-base font-semibold rounded-xl'
+        : size === 'xl'
+          ? 'min-h-14 px-7 text-[17px] font-semibold rounded-2xl'
+          : 'min-h-11 px-4 text-[15px] rounded-xl';
+  const iconSize = size === 'sm' ? 16 : size === 'xl' ? 20 : 18;
   return (
     <button
       type={type}
       title={title}
+      aria-label={ariaLabel}
       disabled={disabled}
       onClick={href ? () => navigate(href) : onClick}
-      className={cx('inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45', v[variant], s, className)}
+      className={cx('inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45', v[variant], s, className)}
     >
-      {icon && <Icon name={icon} size={size === 'sm' ? 16 : 18} />}
+      {icon && <Icon name={icon} size={iconSize} className="shrink-0" />}
       {children}
+      {iconRight && <Icon name={iconRight} size={iconSize} className="shrink-0" />}
     </button>
   );
 }
 
-export function Badge({ children, tone = 'neutral', className = '' }: { children: ReactNode; tone?: 'neutral' | 'brand' | 'good' | 'warn' | 'bad' | 'kk'; className?: string }) {
+export function Badge({ children, tone = 'neutral', className = '' }: { children: ReactNode; tone?: 'neutral' | 'brand' | 'good' | 'warn' | 'bad' | 'kk' | 'warm'; className?: string }) {
   const t = {
-    neutral: 'bg-canvas text-ink-soft border-line',
-    brand: 'bg-brand-soft text-brand-ink border-brand/20',
-    good: 'bg-good-soft text-good border-good/25',
-    warn: 'bg-warn-soft text-warn border-warn/25',
-    bad: 'bg-bad-soft text-bad border-bad/25',
-    kk: 'bg-kk-soft text-kk border-kk/25',
+    neutral: 'bg-subtle text-ink-soft border-line',
+    brand: 'bg-brand-soft text-brand-ink border-brand/15',
+    good: 'bg-good-soft text-good border-good/20',
+    warn: 'bg-warn-soft text-warn border-warn/20',
+    bad: 'bg-bad-soft text-bad border-bad/20',
+    kk: 'bg-kk-soft text-kk-ink border-kk/20',
+    warm: 'bg-warm-soft text-warm-ink border-warm/25',
   }[tone];
-  return <span className={cx('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap', t, className)}>{children}</span>;
+  return <span className={cx('inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap', t, className)}>{children}</span>;
 }
 
-export function Progress({ value, tone = 'brand', className = '', label }: { value: number; tone?: 'brand' | 'kk' | 'good' | 'warn'; className?: string; label?: string }) {
-  const c = { brand: 'bg-brand', kk: 'bg-kk', good: 'bg-good', warn: 'bg-warn' }[tone];
+/** Метка языка: EN — синий, KK — бирюзовый. Единые цвета во всём приложении. */
+export function LangTag({ lang, long }: { lang: 'en' | 'kk'; long?: boolean }) {
+  return <Badge tone={lang === 'en' ? 'brand' : 'kk'}>{long ? (lang === 'en' ? 'Английский' : 'Казахский') : lang === 'en' ? 'EN' : 'KK'}</Badge>;
+}
+
+/** Надзаголовок раздела (маленькие прописные). */
+export function Eyebrow({ children, tone = 'soft', className = '' }: { children: ReactNode; tone?: 'soft' | 'en' | 'kk' | 'warm'; className?: string }) {
+  const c = { soft: 'text-ink-soft', en: 'text-brand', kk: 'text-kk', warm: 'text-warm-ink' }[tone];
+  return <div className={cx('text-xs font-semibold tracking-[0.06em] uppercase', c, className)}>{children}</div>;
+}
+
+/** Заголовок секции внутри страницы (20–24 px). */
+export function SectionTitle({ children, action, sub, className = '' }: { children: ReactNode; action?: ReactNode; sub?: ReactNode; className?: string }) {
+  return (
+    <div className={cx('mb-4 flex items-end justify-between gap-3', className)}>
+      <div className="min-w-0">
+        <h2 className="text-xl leading-snug font-semibold sm:text-[22px]">{children}</h2>
+        {sub && <div className="mt-1 text-sm text-ink-soft">{sub}</div>}
+      </div>
+      {action && <div className="shrink-0">{action}</div>}
+    </div>
+  );
+}
+
+export function Progress({ value, tone = 'brand', className = '', label }: { value: number; tone?: 'brand' | 'kk' | 'good' | 'warn' | 'warm'; className?: string; label?: string }) {
+  const c = { brand: 'bg-brand', kk: 'bg-kk', good: 'bg-good', warn: 'bg-warn', warm: 'bg-warm' }[tone];
   const pct = Math.max(0, Math.min(100, value));
   return (
-    <div className={cx('h-2 w-full overflow-hidden rounded-full bg-line', className)} role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+    <div className={cx('h-2 w-full overflow-hidden rounded-full bg-subtle ring-1 ring-line/60 ring-inset', className)} role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
       <div className={cx('h-full rounded-full transition-all', c)} style={{ width: `${pct}%` }} />
     </div>
   );
 }
 
-export function Ring({ value, size = 64, tone = 'brand', children }: { value: number; size?: number; tone?: 'brand' | 'kk' | 'good'; children?: ReactNode }) {
-  const r = (size - 8) / 2;
+export function Ring({ value, size = 64, tone = 'brand', children, stroke = 6 }: { value: number; size?: number; tone?: 'brand' | 'kk' | 'good' | 'warm'; children?: ReactNode; stroke?: number }) {
+  const r = (size - stroke - 2) / 2;
   const c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(100, value));
-  const color = { brand: 'var(--color-brand)', kk: 'var(--color-kk)', good: 'var(--color-good)' }[tone];
+  const color = { brand: 'var(--color-brand)', kk: 'var(--color-kk)', good: 'var(--color-good)', warm: 'var(--color-warm)' }[tone];
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--color-line)" strokeWidth={6} fill="none" />
-        <circle cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={6} fill="none" strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} strokeLinecap="round" />
+      <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--color-subtle)" strokeWidth={stroke} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={stroke} fill="none" strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} strokeLinecap="round" />
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center text-sm font-semibold">{children ?? `${Math.round(pct)}%`}</div>
+      <div className="absolute inset-0 flex items-center justify-center text-sm font-semibold tabular-nums">{children ?? `${Math.round(pct)}%`}</div>
     </div>
   );
 }
 
-export function PageHeader({ title, subtitle, back, actions }: { title: string; subtitle?: ReactNode; back?: string; actions?: ReactNode }) {
+export function PageHeader({ title, subtitle, back, actions, eyebrow }: { title: string; subtitle?: ReactNode; back?: string; actions?: ReactNode; eyebrow?: ReactNode }) {
   return (
-    <header className="mb-4 flex items-start gap-3">
+    <header className="mb-6 sm:mb-8">
       {back && (
-        <button onClick={() => navigate(back)} className="mt-0.5 -ml-2 rounded-lg p-2 text-ink-soft hover:bg-surface" aria-label="Назад">
-          <Icon name="chevronLeft" />
+        <button onClick={() => navigate(back)} className="-ml-2 mb-2 inline-flex min-h-11 items-center gap-1 rounded-xl px-2 text-sm font-medium text-ink-soft hover:bg-surface hover:text-ink" aria-label="Назад">
+          <Icon name="chevronLeft" size={18} />
+          Назад
         </button>
       )}
-      <div className="min-w-0 flex-1">
-        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
-        {subtitle && <div className="mt-0.5 text-sm text-ink-soft">{subtitle}</div>}
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+        <div className="min-w-0 flex-1 basis-64">
+          {eyebrow && <div className="mb-1.5">{eyebrow}</div>}
+          <h1 className="text-[28px] leading-tight font-semibold tracking-tight sm:text-[32px]">{title}</h1>
+          {subtitle && <div className="mt-2 text-base text-ink-soft">{subtitle}</div>}
+        </div>
+        {actions && <div className="flex shrink-0 flex-wrap gap-2">{actions}</div>}
       </div>
-      {actions && <div className="flex shrink-0 gap-2">{actions}</div>}
     </header>
   );
 }
 
 export function Notice({ children, tone = 'info', title }: { children: ReactNode; tone?: 'info' | 'warn' | 'good' | 'bad'; title?: string }) {
   const t = {
-    info: 'bg-brand-soft border-brand/20 text-brand-ink',
-    warn: 'bg-warn-soft border-warn/25 text-[#7c3d0a]',
-    good: 'bg-good-soft border-good/25 text-[#14532d]',
-    bad: 'bg-bad-soft border-bad/25 text-[#7f1d1d]',
+    info: ['bg-brand-soft border-brand/15', 'text-brand'],
+    warn: ['bg-warn-soft border-warn/20', 'text-warn'],
+    good: ['bg-good-soft border-good/20', 'text-good'],
+    bad: ['bg-bad-soft border-bad/20', 'text-bad'],
   }[tone];
   const icon: IconName = tone === 'warn' || tone === 'bad' ? 'alert' : tone === 'good' ? 'check' : 'info';
   return (
-    <div className={cx('flex gap-2.5 rounded-xl border px-3.5 py-3 text-sm', t)}>
-      <Icon name={icon} size={18} className="mt-0.5 shrink-0" />
+    <div className={cx('flex gap-3 rounded-2xl border px-4 py-3.5 text-[15px] leading-relaxed text-ink', t[0])} role={tone === 'bad' ? 'alert' : undefined}>
+      <Icon name={icon} size={20} className={cx('mt-0.5 shrink-0', t[1])} />
       <div className="min-w-0">
-        {title && <div className="font-semibold">{title}</div>}
+        {title && <div className="mb-0.5 font-semibold">{title}</div>}
         {children}
       </div>
     </div>
@@ -149,24 +196,24 @@ export function Notice({ children, tone = 'info', title }: { children: ReactNode
 
 export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode }) {
   return (
-    <div className="rounded-xl border border-line bg-surface px-3 py-2.5">
-      <div className="text-xs text-ink-soft">{label}</div>
-      <div className="mt-0.5 text-lg font-semibold tabular-nums">{value}</div>
-      {hint && <div className="text-xs text-ink-faint">{hint}</div>}
+    <div className="rounded-2xl border border-line bg-surface px-4 py-3.5 shadow-card">
+      <div className="text-sm text-ink-soft">{label}</div>
+      <div className="mt-1 text-2xl leading-tight font-semibold tabular-nums">{value}</div>
+      {hint && <div className="mt-0.5 text-sm text-ink-faint">{hint}</div>}
     </div>
   );
 }
 
 export function Tabs<T extends string>({ value, onChange, items }: { value: T; onChange: (v: T) => void; items: { value: T; label: ReactNode }[] }) {
   return (
-    <div className="flex gap-1 overflow-x-auto rounded-xl bg-line/60 p-1" role="tablist">
+    <div className="flex gap-1 overflow-x-auto rounded-2xl bg-subtle p-1 ring-1 ring-line" role="tablist">
       {items.map((i) => (
         <button
           key={i.value}
           role="tab"
           aria-selected={value === i.value}
           onClick={() => onChange(i.value)}
-          className={cx('min-h-9 flex-1 rounded-lg px-3 text-sm font-medium whitespace-nowrap transition-colors', value === i.value ? 'bg-surface text-ink shadow-sm' : 'text-ink-soft hover:text-ink')}
+          className={cx('min-h-10 flex-1 rounded-xl px-3.5 text-sm font-medium whitespace-nowrap transition-colors', value === i.value ? 'bg-surface text-ink shadow-card ring-1 ring-line' : 'text-ink-soft hover:text-ink')}
         >
           {i.label}
         </button>
@@ -186,19 +233,19 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 sm:items-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/45 sm:items-center sm:p-6" onClick={onClose}>
       <div
         ref={ref}
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="safe-bottom max-h-[88vh] w-full max-w-xl overflow-y-auto rounded-t-2xl bg-surface p-5 outline-none sm:rounded-2xl"
+        className="safe-bottom max-h-[88vh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-surface p-5 shadow-raised outline-none sm:rounded-3xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <button onClick={onClose} className="rounded-lg p-2 text-ink-soft hover:bg-canvas" aria-label="Закрыть">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold">{title}</h2>
+          <button onClick={onClose} className="-mr-2 flex h-11 w-11 items-center justify-center rounded-xl text-ink-soft hover:bg-subtle" aria-label="Закрыть">
             <Icon name="x" />
           </button>
         </div>
@@ -226,11 +273,11 @@ export function Rich({ text }: { text: string }) {
   );
 }
 
-export function LinkRow({ href, icon, title, subtitle, right }: { href: string; icon?: IconName; title: ReactNode; subtitle?: ReactNode; right?: ReactNode }) {
+export function LinkRow({ href, icon, title, subtitle, right, tone }: { href: string; icon?: IconName; title: ReactNode; subtitle?: ReactNode; right?: ReactNode; tone?: 'en' | 'kk' | 'warm' | 'neutral' }) {
   return (
-    <button onClick={() => navigate(href)} className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left hover:bg-canvas">
+    <button onClick={() => navigate(href)} className="-mx-2 flex min-h-14 w-[calc(100%+1rem)] items-center gap-3.5 rounded-xl px-2 py-2.5 text-left hover:bg-subtle">
       {icon && (
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand">
+        <span className={cx('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', tone === 'kk' ? 'bg-kk-soft text-kk' : tone === 'warm' ? 'bg-warm-soft text-warm-ink' : tone === 'neutral' ? 'bg-subtle text-ink-soft' : 'bg-brand-soft text-brand')}>
           <Icon name={icon} size={18} />
         </span>
       )}
@@ -246,7 +293,7 @@ export function LinkRow({ href, icon, title, subtitle, right }: { href: string; 
 
 export function Empty({ title, children }: { title: string; children?: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-line bg-surface px-5 py-8 text-center">
+    <div className="rounded-card border border-dashed border-line-strong bg-surface px-5 py-10 text-center">
       <div className="font-medium">{title}</div>
       {children && <div className="mt-1 text-sm text-ink-soft">{children}</div>}
     </div>
@@ -256,14 +303,14 @@ export function Empty({ title, children }: { title: string; children?: ReactNode
 export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium">{label}</span>
+      <span className="mb-1.5 block text-sm font-medium">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-ink-soft">{hint}</span>}
+      {hint && <span className="mt-1.5 block text-sm text-ink-soft">{hint}</span>}
     </label>
   );
 }
 
-export const inputCls = 'w-full min-h-11 rounded-xl border border-line bg-surface px-3 py-2 outline-none focus:border-brand';
+export const inputCls = 'w-full min-h-12 rounded-xl border border-line-strong bg-surface px-3.5 py-2.5 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20';
 
 export function Segmented<T extends string | number>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: { value: T; label: ReactNode }[] }) {
   return (
@@ -273,7 +320,7 @@ export function Segmented<T extends string | number>({ value, onChange, options 
           key={String(o.value)}
           onClick={() => onChange(o.value)}
           aria-pressed={value === o.value}
-          className={cx('min-h-10 rounded-xl border px-3.5 text-sm font-medium', value === o.value ? 'border-brand bg-brand-soft text-brand-ink' : 'border-line bg-surface text-ink-soft hover:text-ink')}
+          className={cx('min-h-11 rounded-xl border px-4 text-sm font-medium transition-colors', value === o.value ? 'border-brand bg-brand-soft text-brand-ink ring-1 ring-brand' : 'border-line-strong bg-surface text-ink-soft hover:text-ink')}
         >
           {o.label}
         </button>

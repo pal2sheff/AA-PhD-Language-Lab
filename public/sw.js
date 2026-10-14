@@ -1,5 +1,5 @@
 // Service worker: офлайн-кэш оболочки приложения. Данные пользователя хранятся в IndexedDB, не здесь.
-const CACHE = 'aa-lab-v1';
+const CACHE = 'aa-lab-v2';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './index.html', './manifest.webmanifest', './icons/icon.svg'])).then(() => self.skipWaiting()));
