@@ -7,22 +7,22 @@
 
 | № | Агент | Роль | Инструменты | Зона записи |
 |---|---|---|---|---|
-| 1 | `phd-secretary` | Научный секретарь, координатор | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `project/PhD_Control.md`, `project/sessions/`, `publications/CALENDAR.md`, `defense/PACKAGE_CHECKLIST.md` |
-| 2 | `scientific-director` | Научный руководитель, методолог | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `protocol/`, `project/Research_Profile.md` (после решения пользователя) |
+| 1 | `phd-secretary` | Научный секретарь, координатор | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `project/PhD_Control.md`, `project/sessions/`, `literature/READING_SCHEDULE.*`, `publications/CALENDAR.md`, `defense/PACKAGE_CHECKLIST.md` |
+| 2 | `scientific-director` | Научный руководитель, методолог | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `protocol/` (концепция и сводная версия; кроме `clinical/`, `lab/`, `sap/`), `project/Research_Profile.md` (после решения пользователя) |
 | 3 | `research-librarian` | Поисковик, библиотекарь | Read, Grep, Glob, Write, Edit, Bash, WebSearch, WebFetch | реестр в `literature/`, `literature/search_log/`, `sources/` |
 | 4 | `evidence-analyst` | Аналитик статей и обзора | Read, Grep, Glob, Write, Edit, Bash, WebFetch | `literature/analyses/`, `literature/evidence/` |
 | 5 | `clinical-expert` | Клиника диабетической стопы (5 режимов) | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `protocol/clinical/` |
 | 6 | `biomarker-expert` | Митохондрии, иммунология, старение, лаборатория | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `protocol/lab/` |
-| 7 | `data-statistician` | Данные, биостатистика, R/Python | Read, Grep, Glob, Write, Edit, Bash, NotebookEdit | `analysis/` (кроме `review_runs/`), `data/processed/`, `data/synthetic/`, `protocol/sap/` |
+| 7 | `data-statistician` | Данные, биостатистика, R/Python | Read, Grep, Glob, Write, Edit, Bash, NotebookEdit | `analysis/` (кроме `review_runs/` и `environment/`), `data/processed/`, `data/synthetic/`, `protocol/sap/` |
 | 8 | `ethics-compliance` | Этика, защита данных, официальные требования | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `ethics/`, в т. ч. `ethics/REQUIREMENTS.md` |
-| 9 | `scientific-writer` | Автор, редактор, переводчик, публикации | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `manuscript/`, `publications/` (кроме календаря) |
+| 9 | `scientific-writer` | Автор, редактор, переводчик, публикации | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `manuscript/` (кроме `formatted/`), `publications/` (кроме `CALENDAR.md`) |
 | 10 | `defense-presenter` | Документы, презентации, защита | Read, Grep, Glob, Write, Edit, Bash | `defense/` (кроме чек-листа пакета), `manuscript/formatted/` |
-| 11 | `independent-reviewer` | Независимый проверяющий, оппонент (6 режимов) | Read, Grep, Glob, Bash, Write (хук: только 2 каталога), WebSearch, WebFetch; Edit и NotebookEdit запрещены | `reports/reviews/`, `analysis/review_runs/` |
-| 12 | `research-engineer` | Среда, подключения, воспроизводимость | Read, Grep, Glob, Write, Edit, Bash, WebSearch, WebFetch | `docs/INTEGRATIONS.md`, `analysis/environment/`, `.claude/`, `.mcp.json` (после согласия), `.gitignore` |
+| 11 | `independent-reviewer` | Независимый проверяющий, оппонент (6 режимов) | Read, Grep, Glob, Bash (хук: только чтение и запуск скриптов из `review_runs/`), Write (хук: только 2 каталога), WebSearch, WebFetch; Edit и NotebookEdit запрещены | `reports/reviews/`, `analysis/review_runs/` |
+| 12 | `research-engineer` | Среда, подключения, воспроизводимость | Read, Grep, Glob, Write, Edit, Bash, WebSearch, WebFetch | `docs/INTEGRATIONS.md`, `analysis/environment/`, `.claude/` (агенты, хуки, настройки — только после согласия пользователя), `.mcp.json` (после согласия), `.gitignore` |
 
 Во всех определениях указано `model: inherit`. Поле `permissionMode` не задано, обхода разрешений нет.
 
-**Ограничение проверяющего.** Bash у independent-reviewer не означает режим «только чтение». Хук `.claude/hooks/reviewer_guard.py` блокирует запись через Write вне двух каталогов, удаление и перемещение файлов, `sed -i` и изменяющие команды Git. Скрипт R или Python технически может открыть любой файл, поэтому главная беседа после каждой проверки сверяет `git status`.
+**Ограничение проверяющего.** Хук `.claude/hooks/reviewer_guard.py` работает по списку разрешённого. Write допускается только в `reports/reviews/` и `analysis/review_runs/`. Bash ограничен программами чтения, читающими командами `git`, копированием и созданием каталогов внутри этих двух каталогов и запуском R/Python-скриптов только из `analysis/review_runs/`. Подстановки команд и многострочные команды запрещены. При ошибке разбора действие блокируется. Набор из 62 тестов: `python3 .claude/hooks/tests/test_reviewer_guard.py`. Остаточный риск: скрипт из `analysis/review_runs/` технически может открыть любой файл. Поэтому главная беседа сравнивает отпечатки `.claude/hooks/repo_snapshot.sh` до и после проверки. Хуки агента действуют только при вызове субагента `independent-reviewer` в доверенной рабочей папке.
 
 **Общая защита данных** (`.claude/settings.json`, для всех): запрещено изменять `data/raw/**` и читать `.env`, `.env.*`, `*.key`. По документации Claude Code эти запреты распространяются на встроенные файловые инструменты и распознаваемые команды Bash, но не на произвольные скрипты. Для защиты на уровне ОС нужна песочница.
 
@@ -87,8 +87,13 @@
 | F53 | Чтение файлов, OCR, вычислительная среда | research-engineer | — |
 | F54 | Техническая воспроизводимость | research-engineer | — |
 | F55 | Git и резервное копирование | research-engineer | — |
+| F56 | График чтения (состав и сроки в одном файле) | phd-secretary | состав предлагает research-librarian |
+| F57 | Ведение регламента, каталога, маршрутов, `CLAUDE.md`, `README.md`, отчётов штаба | главная беседа | изменения — после согласия пользователя |
+| F58 | Клиническая интерпретация результатов анализа | clinical-expert | independent-reviewer |
+| F59 | Биологическая и лабораторная интерпретация результатов анализа | biomarker-expert | independent-reviewer |
+| F60 | Учёт выполнения официальных требований | phd-secretary (в `PhD_Control.md` со ссылкой на номер требования) | требования — ethics-compliance |
 
-Итог проверки: 55 функций, у каждой ровно один основной ответственный. Повторы встречаются только в столбце «Проверка / передача». Ни одна функция проверки не назначена автору проверяемого материала.
+Итог проверки: 60 функций, у каждой ровно один основной ответственный. Зоны записи агентов в разделе 1 не пересекаются: вложенные каталоги исключены из зон соседних агентов. Повторы встречаются только в столбце «Проверка / передача». Ни одна функция проверки не назначена автору проверяемого материала.
 
 ## 3. Команды
 
@@ -97,11 +102,11 @@
 | `/phd-status` | главная беседа или phd-secretary | Состояние проекта |
 | `/phd-plan` | phd-secretary (+ scientific-director) | План на период |
 | `/phd-search` | research-librarian | Поиск литературы |
-| `/phd-article` | research-librarian → evidence-analyst → independent-reviewer | Разбор статьи |
+| `/phd-article` | research-librarian → evidence-analyst → independent-reviewer (обязательно, если тезисы идут в текст или статья ключевая) | Разбор статьи |
 | `/phd-review` | scientific-director → librarian + analyst → writer → reviewer | Обзор |
 | `/phd-protocol` | scientific-director + предметные блоки → reviewer | Протокол |
 | `/phd-stats` | data-statistician → reviewer → предметный эксперт | Анализ |
-| `/phd-write` | scientific-writer → reviewer → presenter | Текст |
+| `/phd-write` | scientific-writer → reviewer → исправления → presenter (при необходимости оформления) | Текст |
 | `/phd-check` | independent-reviewer | Проверка |
 | `/phd-defense` | reviewer → presenter → secretary | Защита |
 | `/phd-tools` | research-engineer | Инструменты |

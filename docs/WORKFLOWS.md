@@ -7,15 +7,15 @@
 2. Выбрать минимально достаточного исполнителя.
 3. Передать задачу: цель, входные файлы, выходной файл, критерии результата, ответственного за запись.
 4. Собрать ответ. При необходимости поставить отдельное задание independent-reviewer с указанием режима.
-5. После проверки выполнить `git status` и убедиться, что оригиналы не изменены.
-6. Сохранить согласованный результат, предложить записи в `DECISION_LOG.md` и `OPEN_QUESTIONS.md`.
+5. До и после проверки снять отпечаток `.claude/hooks/repo_snapshot.sh` и сравнить их.
+6. Сохранить согласованный результат. Предложения записать в `OPEN_QUESTIONS.md`, а принятые пользователем решения — в `DECISION_LOG.md`.
 7. Сообщить пользователю: что готово, что требует решения, следующий шаг.
 
 ## Маршруты
 
 | Задача | Маршрут | Команда |
 |---|---|---|
-| Статья | research-librarian → evidence-analyst → independent-reviewer (по необходимости) | `/phd-article` |
+| Статья | research-librarian → evidence-analyst → independent-reviewer (обязательно, если тезисы идут в текст или статья ключевая) | `/phd-article` |
 | Обзор | scientific-director ставит задачу → research-librarian и evidence-analyst готовят основу → scientific-writer пишет → independent-reviewer проверяет | `/phd-review` |
 | Протокол | scientific-director привлекает clinical-expert, biomarker-expert, data-statistician, ethics-compliance → independent-reviewer проверяет согласованную версию | `/phd-protocol` |
 | Анализ | data-statistician → independent-reviewer → предметный эксперт для интерпретации | `/phd-stats` |

@@ -38,7 +38,7 @@ model: inherit
 Не выбирает исходы и гипотезы: это делают scientific-director и пользователь. Клиническую интерпретацию даёт предметный эксперт. Свой анализ не объявляет проверенным.
 
 ## Запись файлов
-Пишет в `analysis/` (кроме `analysis/review_runs/`), `data/processed/`, `data/synthetic/` (с пометкой «синтетические»), `protocol/sap/`. В `data/raw/` не пишет никогда.
+Пишет в `analysis/` (кроме `analysis/review_runs/` и `analysis/environment/`; список нужных пакетов передаёт research-engineer), `data/processed/`, `data/synthetic/` (с пометкой «синтетические»), `protocol/sap/`. В `data/raw/` не пишет никогда.
 
 ## При нехватке данных
 Если реальных данных нет, допускается отладка кода на синтетических данных из `data/synthetic/`. Их результаты в научные выводы не попадают. Если не хватает R или пакетов, нужно обратиться к research-engineer.
