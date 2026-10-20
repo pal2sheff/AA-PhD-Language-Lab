@@ -1,0 +1,109 @@
+# Каталог агентов Диссертационного штаба
+
+Определения: `.claude/agents/*.md`. Общие правила: `docs/HQ_RULES.md`. Маршруты: `docs/WORKFLOWS.md`.
+Главная беседа Claude Code — начальник штаба. Отдельного агента-начальника нет. Агентам не выдан инструмент `Agent`, поэтому вложенные вызовы исключены и всю координацию ведёт главная беседа.
+
+## 1. Состав
+
+| № | Агент | Роль | Инструменты | Зона записи |
+|---|---|---|---|---|
+| 1 | `phd-secretary` | Научный секретарь, координатор | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `project/PhD_Control.md`, `project/sessions/`, `publications/CALENDAR.md`, `defense/PACKAGE_CHECKLIST.md` |
+| 2 | `scientific-director` | Научный руководитель, методолог | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `protocol/`, `project/Research_Profile.md` (после решения пользователя) |
+| 3 | `research-librarian` | Поисковик, библиотекарь | Read, Grep, Glob, Write, Edit, Bash, WebSearch, WebFetch | реестр в `literature/`, `literature/search_log/`, `sources/` |
+| 4 | `evidence-analyst` | Аналитик статей и обзора | Read, Grep, Glob, Write, Edit, Bash, WebFetch | `literature/analyses/`, `literature/evidence/` |
+| 5 | `clinical-expert` | Клиника диабетической стопы (5 режимов) | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `protocol/clinical/` |
+| 6 | `biomarker-expert` | Митохондрии, иммунология, старение, лаборатория | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `protocol/lab/` |
+| 7 | `data-statistician` | Данные, биостатистика, R/Python | Read, Grep, Glob, Write, Edit, Bash, NotebookEdit | `analysis/` (кроме `review_runs/`), `data/processed/`, `data/synthetic/`, `protocol/sap/` |
+| 8 | `ethics-compliance` | Этика, защита данных, официальные требования | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `ethics/`, в т. ч. `ethics/REQUIREMENTS.md` |
+| 9 | `scientific-writer` | Автор, редактор, переводчик, публикации | Read, Grep, Glob, Write, Edit, WebSearch, WebFetch | `manuscript/`, `publications/` (кроме календаря) |
+| 10 | `defense-presenter` | Документы, презентации, защита | Read, Grep, Glob, Write, Edit, Bash | `defense/` (кроме чек-листа пакета), `manuscript/formatted/` |
+| 11 | `independent-reviewer` | Независимый проверяющий, оппонент (6 режимов) | Read, Grep, Glob, Bash, Write (хук: только 2 каталога), WebSearch, WebFetch; Edit и NotebookEdit запрещены | `reports/reviews/`, `analysis/review_runs/` |
+| 12 | `research-engineer` | Среда, подключения, воспроизводимость | Read, Grep, Glob, Write, Edit, Bash, WebSearch, WebFetch | `docs/INTEGRATIONS.md`, `analysis/environment/`, `.claude/`, `.mcp.json` (после согласия), `.gitignore` |
+
+Во всех определениях указано `model: inherit`. Поле `permissionMode` не задано, обхода разрешений нет.
+
+**Ограничение проверяющего.** Bash у independent-reviewer не означает режим «только чтение». Хук `.claude/hooks/reviewer_guard.py` блокирует запись через Write вне двух каталогов, удаление и перемещение файлов, `sed -i` и изменяющие команды Git. Скрипт R или Python технически может открыть любой файл, поэтому главная беседа после каждой проверки сверяет `git status`.
+
+**Общая защита данных** (`.claude/settings.json`, для всех): запрещено изменять `data/raw/**` и читать `.env`, `.env.*`, `*.key`. По документации Claude Code эти запреты распространяются на встроенные файловые инструменты и распознаваемые команды Bash, но не на произвольные скрипты. Для защиты на уровне ОС нужна песочница.
+
+## 2. Каноническое соответствие ролей
+
+**Прежних определений штаба в проекте не обнаружено** (проверено 2026-10-20: `.claude/agents/`, `.claude/skills/`, `.claude/commands/` в репозитории и ветке `main`, пользовательские `~/.claude/agents`, `~/.claude/skills` в этой среде). Исходного перечня 41 роли тоже нет. Поэтому таблица ниже — **реконструкция по описанию функций в поручении от 20.10.2026, а не по проверенным файлам**. Полнота оценена по перечню функций, а точное соответствие 41 прежней роли проверить невозможно. Если пользователь предоставит прежний перечень, таблицу нужно сверить (см. `project/OPEN_QUESTIONS.md`).
+
+| Код | Функция | Основной ответственный | Проверка / передача |
+|---|---|---|---|
+| F01 | Приём поручения, выбор исполнителей, сведение результатов | главная беседа | — |
+| F02 | Журнал решений и открытые вопросы | главная беседа | предложения от всех агентов |
+| F03 | Прогресс, задачи, сроки | phd-secretary | — |
+| F04 | Подготовка следующей сессии и встреч | phd-secretary | — |
+| F05 | Организация поступления (Астана, КазНМУ, зарубежные) | phd-secretary | требования от ethics-compliance |
+| F06 | Поиск финансирования | phd-secretary | требования от ethics-compliance |
+| F07 | Языковая подготовка (организация) | phd-secretary | — |
+| F08 | Публикационный календарь | phd-secretary | журналы от scientific-writer |
+| F09 | Комплектность пакета к защите | phd-secretary | требования от ethics-compliance |
+| F10 | Научная концепция, пробел, новизна | scientific-director | independent-reviewer (методология) |
+| F11 | Цель, задачи, гипотезы | scientific-director | independent-reviewer |
+| F12 | Дизайн, критерии включения, исходы, смешивающие факторы | scientific-director | clinical, biomarker, statistician; independent-reviewer |
+| F13 | Выбор типа обзора | scientific-director | — |
+| F14 | Согласование протокола | scientific-director | independent-reviewer |
+| F15 | Поисковые стратегии и поиск | research-librarian | independent-reviewer (источники) |
+| F16 | Библиография, метаданные, DOI/PMID | research-librarian | independent-reviewer (источники) |
+| F17 | Полные тексты и доступность | research-librarian | — |
+| F18 | Реестр, канонические номера, дубли, потоки А/Б | research-librarian | — |
+| F19 | Разбор статей | evidence-analyst | independent-reviewer (источники) |
+| F20 | Оценка качества и риска систематической ошибки | evidence-analyst | independent-reviewer (методология) |
+| F21 | Матрицы доказательств, тематический синтез | evidence-analyst | → scientific-writer |
+| F22 | Хирургия диабетической стопы | clinical-expert (режим «хирургия») | — |
+| F23 | Эндокринология | clinical-expert (режим «эндокринология») | — |
+| F24 | Сосудистая патология | clinical-expert (режим «сосуды») | — |
+| F25 | Инфекция и раневой процесс | clinical-expert (режим «раны») | — |
+| F26 | Реабилитация и организация сопровождения | clinical-expert (режим «реабилитация») | — |
+| F27 | Митохондриальная биология, механизмы | biomarker-expert | — |
+| F28 | Иммунология и воспаление | biomarker-expert | — |
+| F29 | Старение, биологический возраст, AGE | biomarker-expert | — |
+| F30 | Лабораторная документация, преаналитика, единицы | biomarker-expert | — |
+| F31 | Карта участника, словарь переменных, структура базы | data-statistician | independent-reviewer (статистика) |
+| F32 | Обоснование выборки, план анализа | data-statistician | independent-reviewer (статистика) |
+| F33 | Расчёты в R/Python, журнал, версии | data-statistician | independent-reviewer (повторение) |
+| F34 | Прогностическое моделирование | data-statistician | independent-reviewer (статистика, стандарт TRIPOD) |
+| F35 | Контроль качества данных | data-statistician | — |
+| F36 | ЛЭК, согласия, поправки к протоколу | ethics-compliance | independent-reviewer (добросовестность) |
+| F37 | Обезличивание, доступ к данным | ethics-compliance | research-engineer (техническая часть) |
+| F38 | Официальные требования РК, вузов, аттестации и защиты | ethics-compliance | → phd-secretary (отслеживание) |
+| F39 | Написание глав и статей | scientific-writer | independent-reviewer |
+| F40 | Редактура, корректура, терминология | scientific-writer | — |
+| F41 | Медицинский перевод EN/KZ | scientific-writer | — |
+| F42 | Подбор журналов, подача, ответы рецензентам | scientific-writer | independent-reviewer |
+| F43 | Оформление DOCX, таблиц, рисунков, приложений | defense-presenter | — |
+| F44 | Презентации | defense-presenter | — |
+| F45 | Доклад, версии выступления, банк ответов, репетиции | defense-presenter | вопросы от independent-reviewer |
+| F46 | Проверка источников, цитат, DOI, чисел | independent-reviewer | — |
+| F47 | Методологическая экспертиза | independent-reviewer | — |
+| F48 | Независимая статистическая проверка | independent-reviewer | техническая помощь research-engineer |
+| F49 | Соответствие стандартам описания | independent-reviewer | — |
+| F50 | Научная добросовестность | independent-reviewer | — |
+| F51 | Оппонирование перед защитой | independent-reviewer | → defense-presenter |
+| F52 | Конфигурация Claude Code, MCP, API, плагины | research-engineer | — |
+| F53 | Чтение файлов, OCR, вычислительная среда | research-engineer | — |
+| F54 | Техническая воспроизводимость | research-engineer | — |
+| F55 | Git и резервное копирование | research-engineer | — |
+
+Итог проверки: 55 функций, у каждой ровно один основной ответственный. Повторы встречаются только в столбце «Проверка / передача». Ни одна функция проверки не назначена автору проверяемого материала.
+
+## 3. Команды
+
+| Команда | Исполнители | Назначение |
+|---|---|---|
+| `/phd-status` | главная беседа или phd-secretary | Состояние проекта |
+| `/phd-plan` | phd-secretary (+ scientific-director) | План на период |
+| `/phd-search` | research-librarian | Поиск литературы |
+| `/phd-article` | research-librarian → evidence-analyst → independent-reviewer | Разбор статьи |
+| `/phd-review` | scientific-director → librarian + analyst → writer → reviewer | Обзор |
+| `/phd-protocol` | scientific-director + предметные блоки → reviewer | Протокол |
+| `/phd-stats` | data-statistician → reviewer → предметный эксперт | Анализ |
+| `/phd-write` | scientific-writer → reviewer → presenter | Текст |
+| `/phd-check` | independent-reviewer | Проверка |
+| `/phd-defense` | reviewer → presenter → secretary | Защита |
+| `/phd-tools` | research-engineer | Инструменты |
+
+Прежние `/progress` и `/article` в проекте и в пользовательских навыках этой среды не найдены. Совместимость сохранять не с чем. Если эти команды существуют на другом компьютере, их нужно предоставить, и тогда будут созданы псевдонимы к `/phd-status` и `/phd-article` без изменения смысла.
