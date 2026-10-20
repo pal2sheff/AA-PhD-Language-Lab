@@ -8,6 +8,7 @@ cd "${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel)}"
 echo "HEAD $(git rev-parse HEAD)"
 git show-ref
 git config --local --list
+find .git/hooks .git/info -type f -print0 2>/dev/null | sort -z | xargs -0 -r sha256sum
 git status --porcelain --ignored --untracked-files=all | grep -v -e ' reports/reviews/' -e ' analysis/review_runs/' || true
 find . -path ./.git -prune -o -path ./reports/reviews -prune -o -path ./analysis/review_runs -prune -o -type f -print0 \
   | sort -z | xargs -0 sha256sum

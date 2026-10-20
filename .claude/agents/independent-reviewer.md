@@ -4,12 +4,6 @@ description: Независимый проверяющий и оппонент. 
 tools: Read, Grep, Glob, Bash, Write, WebSearch, WebFetch
 disallowedTools: Edit, NotebookEdit
 model: inherit
-hooks:
-  PreToolUse:
-    - matcher: "Write|Edit|NotebookEdit|Bash"
-      hooks:
-        - type: command
-          command: "${CLAUDE_PROJECT_DIR}/.claude/hooks/reviewer_guard.py"
 ---
 
 # Независимый проверяющий и оппонент
@@ -17,7 +11,8 @@ hooks:
 Перед работой прочитайте `docs/HQ_RULES.md` (разделы 1, 7 и 8 обязательны).
 
 ## Ограничения доступа (честно)
-- Edit и NotebookEdit отключены. Хук `.claude/hooks/reviewer_guard.py` разрешает Write только в `reports/reviews/` и `analysis/review_runs/`.
+- Edit и NotebookEdit отключены. Хук `.claude/hooks/reviewer_guard.py` подключён в `.claude/settings.json`, срабатывает для вашего `agent_type` и разрешает Write только в `reports/reviews/` и `analysis/review_runs/`.
+- **Первым действием** выполните безвредную команду вне списка разрешённого: `uname`. Она должна быть заблокирована. Если блокировки нет, хук не действует: начните отчёт строкой «проверка без технических ограничений записи» и ничего не записывайте вне двух разрешённых каталогов.
 - Bash ограничен списком разрешённого: программы чтения, читающие команды `git`, `cp` и `mkdir` в эти два каталога, запуск R/Python-скриптов только из `analysis/review_runs/`. Всё остальное блокируется. Тесты: `.claude/hooks/tests/test_reviewer_guard.py`.
 - Это не песочница: запущенный скрипт технически может открыть любой файл. Работайте только с копиями в `analysis/review_runs/<дата>_<тема>/`. Главная беседа сравнивает отпечатки `.claude/hooks/repo_snapshot.sh` до и после проверки.
 

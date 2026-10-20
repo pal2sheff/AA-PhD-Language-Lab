@@ -24,6 +24,9 @@ CASES = [
     ("cp в review_runs", B, {"command": "cp analysis/main.R analysis/review_runs/run1/"}, 0),
     ("mkdir в review_runs", B, {"command": "mkdir -p analysis/review_runs/run1"}, 0),
     ("pdftotext в stdout", B, {"command": "pdftotext sources/a.pdf - | head"}, 0),
+    ("id (проба активности хука)", B, {"command": "id"}, 0),
+    ("python3 -I -B из review_runs", B, {"command": "python3 -I -B analysis/review_runs/run1/a.py"}, 0),
+    ("Rscript --vanilla из review_runs", B, {"command": "Rscript --vanilla analysis/review_runs/run1/a.R"}, 0),
     ("вывод в /dev/null", B, {"command": "ls data 2>/dev/null"}, 0),
     # Запрещено: Write/Edit
     ("Write в manuscript", W, {"file_path": f"{ROOT}/manuscript/ch1.md"}, 2),
@@ -74,6 +77,35 @@ CASES = [
     ("перенаправление после >&", B, {"command": "ls >& CLAUDE.md"}, 2),
     ("pdftotext в чужой файл", B, {"command": "pdftotext a.pdf CLAUDE.md"}, 2),
     ("awk", B, {"command": "awk 'BEGIN{system(\"rm x\")}'"}, 2),
+    # Обходы из проверки агентом independent-reviewer 2026-10-20
+    ("sort -o", B, {"command": "sort -o CLAUDE.md /dev/null"}, 2),
+    ("sort --output", B, {"command": "sort --output=CLAUDE.md /dev/null"}, 2),
+    ("sort --compress-program", B, {"command": "sort --compress-program=x.sh CLAUDE.md"}, 2),
+    ("uniq IN OUT", B, {"command": "uniq /dev/null CLAUDE.md"}, 2),
+    ("tree -o", B, {"command": "tree -o CLAUDE.md"}, 2),
+    ("xxd IN OUT", B, {"command": "xxd /dev/null CLAUDE.md"}, 2),
+    ("xxd -r", B, {"command": "xxd -r /dev/null CLAUDE.md"}, 2),
+    ("git diff --output", B, {"command": "git diff --output=CLAUDE.md"}, 2),
+    ("git log --output", B, {"command": "git log -1 --output=CLAUDE.md"}, 2),
+    ("git grep -O", B, {"command": "git grep -Orm -e probe -- manuscript"}, 2),
+    ("git diff --ext-diff", B, {"command": "git diff --ext-diff"}, 2),
+    ("rg --pre", B, {"command": "rg --pre rm probe manuscript"}, 2),
+    ("1<>", B, {"command": "echo x 1<> CLAUDE.md"}, 2),
+    ("cat <>", B, {"command": "cat <> manuscript/__new.md"}, 2),
+    ("python3 -Ic", B, {"command": "python3 -Ic 'import os#/../analysis/review_runs/x'"}, 2),
+    ("python3 -Ec", B, {"command": "python3 -Ec 'x#/../analysis/review_runs/x'"}, 2),
+    ("python3 -Bc", B, {"command": "python3 -Bc 'x#/../analysis/review_runs/x'"}, 2),
+    ("python3 -Im", B, {"command": "python3 -Im shutil"}, 2),
+    ("Rscript --expr", B, {"command": "Rscript --expr=1"}, 2),
+    ("программа по пути из review_runs", B, {"command": "analysis/review_runs/b/cat -c x"}, 2),
+    ("программа по относительному пути", B, {"command": "./cat x"}, 2),
+    ("cp -s", B, {"command": "cp -s CLAUDE.md analysis/review_runs/l"}, 2),
+    ("cp -l", B, {"command": "cp -l CLAUDE.md analysis/review_runs/h"}, 2),
+    ("cp --link", B, {"command": "cp --link CLAUDE.md analysis/review_runs/h"}, 2),
+    ("date -s", B, {"command": "date -s 2000-01-01"}, 2),
+    # Фильтр по агенту
+    ("другой агент не ограничивается", "OTHER", {"command": "rm x"}, 0),
+    ("главная беседа не ограничивается", "MAIN", {"command": "rm x"}, 0),
     # Сбои разбора
     ("command не строка", B, {"command": ["rm", "CLAUDE.md"]}, 2),
     ("незакрытая кавычка", B, {"command": "echo \"x"}, 2),
@@ -81,7 +113,13 @@ CASES = [
 
 
 def run(tool, tool_input, raw=None):
-    payload = raw if raw is not None else json.dumps({"tool_name": tool, "tool_input": tool_input, "cwd": ROOT})
+    data = {"tool_name": tool, "tool_input": tool_input, "cwd": ROOT, "agent_type": "independent-reviewer"}
+    if tool == "OTHER":
+        data.update(tool_name="Bash", agent_type="data-statistician")
+    elif tool == "MAIN":
+        data["tool_name"] = "Bash"
+        del data["agent_type"]
+    payload = raw if raw is not None else json.dumps(data)
     env = dict(os.environ, CLAUDE_PROJECT_DIR=ROOT)
     return subprocess.run([sys.executable, HOOK], input=payload, text=True, capture_output=True, env=env).returncode
 

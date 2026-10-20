@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """PreToolUse-хук агента independent-reviewer (список разрешённого).
 
+Подключён в .claude/settings.json и срабатывает для всех субагентов, но ограничивает
+только вызовы с agent_type == "independent-reviewer"; остальным возвращает 0.
+
 Write разрешён только в reports/reviews/ и analysis/review_runs/. Edit и NotebookEdit запрещены.
 Bash: каждая команда в цепочке должна входить в список разрешённых программ чтения;
 перенаправление вывода допускается только в разрешённые каталоги или /dev/null;
@@ -18,12 +21,17 @@ import shlex
 import sys
 
 ALLOWED_DIRS = ("reports/reviews", "analysis/review_runs")
+# Программы, которые не пишут в файлы и не запускают других программ
+# (sort, uniq, tree, xxd, rg, date исключены: у них есть запись в файл или запуск команд).
 READ_ONLY = {
-    "ls", "cat", "head", "tail", "wc", "grep", "rg", "diff", "cmp", "sort", "uniq",
+    "ls", "cat", "head", "tail", "wc", "grep", "diff", "cmp",
     "cut", "tr", "nl", "pwd", "stat", "file", "md5sum", "sha256sum", "echo", "printf",
-    "true", "test", "[", "basename", "dirname", "realpath", "date", "which", "jq",
-    "pdfinfo", "column", "comm", "join", "paste", "fold", "od", "xxd", "tree", "du",
+    "true", "test", "[", "basename", "dirname", "realpath", "which", "jq",
+    "pdfinfo", "column", "comm", "join", "paste", "fold", "od", "du", "id",
 }
+SYSTEM_BIN = ("/usr/bin/", "/bin/", "/usr/local/bin/")
+GIT_FORBIDDEN_PREFIX = ("--output", "-O", "--open-files-in-pager", "--ext-diff", "--textconv", "--exec", "--upload-pack")
+CP_FLAGS = {"-r", "-R", "-p", "-v", "--recursive", "--preserve", "--verbose", "--"}
 GIT_READ = {"status", "diff", "log", "show", "rev-parse", "ls-files", "blame", "grep", "cat-file", "show-ref"}
 FIND_FORBIDDEN = {"-delete", "-exec", "-execdir", "-ok", "-okdir", "-fprint", "-fprint0", "-fprintf", "-fls"}
 SEPARATORS = {";", "&&", "||", "|", "&", "(", ")", ";;", "|&"}
@@ -42,12 +50,16 @@ def in_allowed(path, root, cwd):
 def check_segment(words, root, cwd):
     if not words:
         return
+    if "/" in words[0] and not words[0].startswith(SYSTEM_BIN):
+        raise Blocked("запуск программ допускается только по имени или из системных каталогов")
     prog, args = os.path.basename(words[0]), words[1:]
     if prog in READ_ONLY:
         return
     if prog == "git":
         if not args or args[0] not in GIT_READ:
             raise Blocked("разрешены только читающие команды git без глобальных опций")
+        if any(a.startswith(GIT_FORBIDDEN_PREFIX) for a in args[1:]):
+            raise Blocked("git: опции записи в файл или запуска программ запрещены")
         return
     if prog == "find":
         if FIND_FORBIDDEN.intersection(args):
@@ -63,18 +75,25 @@ def check_segment(words, root, cwd):
             raise Blocked("mkdir только внутри разрешённых каталогов")
         return
     if prog == "cp":
+        flags = [a for a in args if a.startswith("-")]
         paths = [a for a in args if not a.startswith("-")]
-        if len(paths) < 2 or not in_allowed(paths[-1], root, cwd) or "-t" in args or any(a.startswith("--target") for a in args):
+        if any(f not in CP_FLAGS for f in flags) or len(paths) < 2 or not in_allowed(paths[-1], root, cwd):
             raise Blocked("cp только с копированием в analysis/review_runs/ или reports/reviews/")
         return
     if prog in ("python3", "python", "Rscript"):
         script = None
         for a in args:
-            if a in ("-c", "-e", "-m") or a.startswith(("-c", "-e", "-m")) and len(a) > 2 and not a.startswith("--"):
-                raise Blocked(f"{prog}: выполнение кода из строки или модуля запрещено")
-            if not a.startswith("-"):
-                script = a
-                break
+            if a.startswith("--"):
+                if prog == "Rscript" and a.startswith(("--expr", "--default-packages")):
+                    raise Blocked("Rscript: выполнение кода из строки запрещено")
+                continue
+            if a.startswith("-"):
+                letters = set(a[1:])
+                if (prog != "Rscript" and letters & {"c", "m"}) or (prog == "Rscript" and "e" in letters):
+                    raise Blocked(f"{prog}: выполнение кода из строки или модуля запрещено")
+                continue
+            script = a
+            break
         if not script or not in_allowed(script, root, cwd):
             raise Blocked(f"{prog}: запуск только скриптов из analysis/review_runs/")
         return
@@ -102,6 +121,8 @@ def check_bash(cmd, root, cwd):
             i += 1
         elif t in ("<", "<<", "<<<"):
             i += 1
+        elif t and set(t) <= set("<>|&;()"):
+            raise Blocked(f"оператор оболочки '{t}' запрещён")
         else:
             words.append(t)
         i += 1
@@ -110,6 +131,8 @@ def check_bash(cmd, root, cwd):
 
 def main():
     data = json.load(sys.stdin)
+    if data.get("agent_type") != "independent-reviewer":
+        return
     tool = data.get("tool_name", "")
     tool_input = data.get("tool_input") or {}
     root = os.path.realpath(os.environ.get("CLAUDE_PROJECT_DIR") or data.get("cwd") or ".")

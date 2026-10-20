@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Статья: $ARGUMENTS
 
-**Маршрут:** research-librarian → evidence-analyst → independent-reviewer (по необходимости).
+**Маршрут:** research-librarian → evidence-analyst → independent-reviewer (обязательно, если тезисы идут в текст или статья ключевая).
 
 **Порядок:**
 1. `research-librarian`: найти запись в реестре или подготовить её, проверить метаданные и получить полный текст законным путём. Сообщить основание: полный текст или аннотация.

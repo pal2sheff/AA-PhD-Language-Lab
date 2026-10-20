@@ -6,5 +6,20 @@
       "Read(**/.env.*)",
       "Read(**/*.key)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/reviewer_guard.py"],
+            "onFailure": "block"
+          }
+        ]
+      }
+    ]
   }
 }
